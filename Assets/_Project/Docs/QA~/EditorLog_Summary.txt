@@ -1,0 +1,14 @@
+Closed Beta QA diagnostic summary
+Captured from the existing project workspace; this is not a new Unity test run.
+
+Editor log timestamp observed: 2026-10-27 13:59:19.
+The log contains six historical compiler-error entries, representing two repeated diagnostics in PrinceBackpackQuestFix.cs:
+- EditorSceneManager.IsSceneDirty was not found.
+- An argument conversion from Scene to UnityEngine.Object failed.
+The current source no longer has those expressions at the logged locations. The log therefore does not establish whether the current source compiles.
+
+Editor-prev.log contains older compile errors in MainMenuController, LoadingScreenController and ClosingSceneController. These refer to earlier source states and were not treated as current results.
+The current log also contains a historical "UI sound set was not found" message. Assets/_Project/Resources/UISoundSet.asset currently exists; no runtime re-test was possible.
+Historical warnings include obsolete-API notices and CS0472 in PrinceDialogueQuestSetup.cs. A current Unity Console compilation was not observed.
+
+No player build, Play Mode session, screenshot, FPS sample, memory measurement or Player.log was produced. Unity was already open for this project; a second editor instance was not launched.

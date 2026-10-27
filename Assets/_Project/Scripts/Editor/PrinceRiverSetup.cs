@@ -15,7 +15,7 @@ namespace Prince.Editor
         private const string RiverClipPath =
             "Assets/_Project/Audio/BGM forest/dragon-studio-soothing-river-flow-372456.mp3";
         private const string SourceWaterMaterialPath =
-            "Assets/InnerverseInteractive/Ultimate Nature \u2013 Starter/Environment/Water/Materials/UNS_Water.mat";
+            "Assets/_Project/Materials/Nature/UNS_Water.mat";
         private const string RiverMaterialPath = "Assets/_Project/Materials/Nature/UNS_River_Water.mat";
         private const string WaterShaderName = "Prince/Stylized Water (URP)";
         private const string SetupObjectName = "River_Environment_Setup";
@@ -60,6 +60,15 @@ namespace Prince.Editor
                         out Renderer[] riverRenderers, out Bounds waterBounds))
                     return;
 
+                Terrain islandTerrain = FindTerrain(scene);
+                if (islandTerrain == null || islandTerrain.terrainData == null)
+                {
+                    Debug.LogError(
+                        "Could not find a Terrain with TerrainData in the forest scene. " +
+                        "Island-edge barriers were not created.");
+                    return;
+                }
+
                 Material riverMaterial = CreateOrUpdateRiverMaterial();
                 if (riverMaterial == null)
                     return;
@@ -83,19 +92,20 @@ namespace Prince.Editor
                 RiverEnvironment environment = GetOrAddComponent<RiverEnvironment>(setupObject);
                 Vector3 travelDirection = placement.BackpackPosition - placement.BramPosition;
                 Vector3 flowDirection = GetFlowDirection(waterBounds, travelDirection);
-                Vector3 riverCenter = placement.BackpackPosition;
+                Vector3 riverCenter = waterBounds.center;
                 environment.Configure(
                     riverCenter,
                     flowDirection,
-                    40f,
-                    6f,
+                    waterBounds.extents.magnitude * 2f,
+                    waterBounds.extents.magnitude,
                     14f,
                     8f,
                     35f,
                     0.85f);
 
-                AssignRiverMaterial(riverRenderers, riverMaterial);
-                ConfigureInvisibleWalls(setupObject.transform, environment, waterBounds);
+                Material sourceWaterMaterial = AssetDatabase.LoadAssetAtPath<Material>(SourceWaterMaterialPath);
+                AssignRiverMaterial(riverRenderers, sourceWaterMaterial, riverMaterial);
+                ConfigureIslandBoundaryWalls(setupObject.transform, islandTerrain);
                 ConfigureRiverAudio(setupObject.transform, environment, riverClip);
 
                 EditorUtility.SetDirty(environment);
@@ -273,7 +283,10 @@ namespace Prince.Editor
             return material;
         }
 
-        private static void AssignRiverMaterial(Renderer[] renderers, Material material)
+        private static void AssignRiverMaterial(
+            Renderer[] renderers,
+            Material sourceMaterial,
+            Material riverMaterial)
         {
             foreach (Renderer renderer in renderers)
             {
@@ -281,9 +294,9 @@ namespace Prince.Editor
                 bool changed = false;
                 for (int i = 0; i < materials.Length; i++)
                 {
-                    if (materials[i] == null || materials[i].name != "UNS_Water")
+                    if (materials[i] != sourceMaterial)
                         continue;
-                    materials[i] = material;
+                    materials[i] = riverMaterial;
                     changed = true;
                 }
 
@@ -311,63 +324,117 @@ namespace Prince.Editor
             return new Vector3(travelDirection.z, 0f, -travelDirection.x).normalized;
         }
 
-        private static void ConfigureInvisibleWalls(
-            Transform parent,
-            RiverEnvironment environment,
-            Bounds waterBounds)
+        private static void ConfigureIslandBoundaryWalls(Transform parent, Terrain terrain)
         {
-            Vector3 flow = environment.FlowDirection;
-            Vector3 side = new Vector3(-flow.z, 0f, flow.x);
-            Vector3 horizontalHalfExtents = new Vector3(waterBounds.extents.x, 0f, waterBounds.extents.z);
-            float surfaceHeight = waterBounds.max.y;
-            float terrainHeight = surfaceHeight + environment.WallHeight - 4f;
-            Terrain terrain = FindTerrain(parent.gameObject.scene);
-            if (terrain != null && terrain.terrainData != null)
+            TerrainData data = terrain.terrainData;
+            Vector3 scale = terrain.transform.lossyScale;
+            float width = data.size.x * Mathf.Abs(scale.x);
+            float length = data.size.z * Mathf.Abs(scale.z);
+            float thickness = 1f;
+            float bottom = terrain.transform.position.y - 10f;
+            float top = terrain.transform.position.y +
+                        data.size.y * Mathf.Abs(scale.y) + 10f;
+            float height = Mathf.Max(20f, top - bottom);
+            float centerY = (bottom + top) * 0.5f;
+            Vector3 localRight = terrain.transform.right.normalized;
+            Vector3 localForward = terrain.transform.forward.normalized;
+
+            DisableOldRiverWall(parent, "River_InvisibleWall_Left");
+            DisableOldRiverWall(parent, "River_InvisibleWall_Right");
+            DisableOldRiverWall(parent, "River_InvisibleWall_Start");
+            DisableOldRiverWall(parent, "River_InvisibleWall_End");
+
+            ConfigureTerrainEdgeWall(
+                parent,
+                "Island_InvisibleWall_West",
+                terrain,
+                new Vector3(-thickness * 0.5f, 0f, data.size.z * 0.5f),
+                localForward,
+                length + thickness,
+                height,
+                thickness,
+                centerY);
+            ConfigureTerrainEdgeWall(
+                parent,
+                "Island_InvisibleWall_East",
+                terrain,
+                new Vector3(data.size.x + thickness * 0.5f, 0f, data.size.z * 0.5f),
+                localForward,
+                length + thickness,
+                height,
+                thickness,
+                centerY);
+            ConfigureTerrainEdgeWall(
+                parent,
+                "Island_InvisibleWall_North",
+                terrain,
+                new Vector3(data.size.x * 0.5f, 0f, -thickness * 0.5f),
+                localRight,
+                width + thickness,
+                height,
+                thickness,
+                centerY);
+            ConfigureTerrainEdgeWall(
+                parent,
+                "Island_InvisibleWall_South",
+                terrain,
+                new Vector3(data.size.x * 0.5f, 0f, data.size.z + thickness * 0.5f),
+                localRight,
+                width + thickness,
+                height,
+                thickness,
+                centerY);
+        }
+
+        private static void ConfigureTerrainEdgeWall(
+            Transform parent,
+            string wallName,
+            Terrain terrain,
+            Vector3 terrainLocalPosition,
+            Vector3 direction,
+            float length,
+            float height,
+            float thickness,
+            float centerY)
+        {
+            GameObject wall = GetOrCreateChild(parent, wallName);
+            Vector3 center = terrain.transform.TransformPoint(terrainLocalPosition);
+            center.y = centerY;
+            Undo.RecordObject(wall.transform, "Place Island Boundary Wall");
+            ConfigureWall(wall, center, direction, length, height, thickness);
+            EditorUtility.SetDirty(wall.transform);
+        }
+
+        private static void DisableOldRiverWall(Transform parent, string wallName)
+        {
+            Transform oldWall = parent.Find(wallName);
+            if (oldWall == null)
+                return;
+
+            BoxCollider oldCollider = oldWall.GetComponent<BoxCollider>();
+            if (oldCollider != null && oldCollider.enabled)
             {
-                Vector3 leftPoint = environment.RiverCenter + side * environment.BankHalfWidth;
-                Vector3 rightPoint = environment.RiverCenter - side * environment.BankHalfWidth;
-                terrainHeight = Mathf.Max(
-                    terrain.transform.position.y + terrain.SampleHeight(leftPoint),
-                    terrain.transform.position.y + terrain.SampleHeight(rightPoint));
+                Undo.RecordObject(oldCollider, "Disable Old River Barrier");
+                oldCollider.enabled = false;
+                EditorUtility.SetDirty(oldCollider);
             }
-
-            float bottom = Mathf.Min(surfaceHeight - 1f, terrainHeight - environment.WallHeight);
-            float top = Mathf.Max(terrainHeight + 2f, bottom + environment.WallHeight);
-            float height = top - bottom;
-            Vector3 wallCenter = environment.RiverCenter;
-            wallCenter.y = (top + bottom) * 0.5f;
-            Vector3 sideOffset = side * environment.BankHalfWidth;
-            float availableLength = Mathf.Max(1f, environment.WallLength);
-            if (horizontalHalfExtents.sqrMagnitude > 0f)
-                availableLength = Mathf.Min(availableLength, Mathf.Max(1f, Vector3.Dot(horizontalHalfExtents, new Vector3(Mathf.Abs(flow.x), 0f, Mathf.Abs(flow.z))) * 2f));
-
-            ConfigureWall(
-                GetOrCreateChild(parent, "River_InvisibleWall_Left"),
-                wallCenter + sideOffset,
-                flow,
-                availableLength,
-                height);
-            ConfigureWall(
-                GetOrCreateChild(parent, "River_InvisibleWall_Right"),
-                wallCenter - sideOffset,
-                flow,
-                availableLength,
-                height);
         }
 
         private static void ConfigureWall(
             GameObject wall,
             Vector3 center,
-            Vector3 flow,
+            Vector3 direction,
             float length,
-            float height)
+            float height,
+            float thickness)
         {
             wall.transform.SetPositionAndRotation(
                 center,
-                Quaternion.LookRotation(flow, Vector3.up));
+                Quaternion.LookRotation(direction, Vector3.up));
             BoxCollider collider = GetOrAddComponent<BoxCollider>(wall);
+            Undo.RecordObject(collider, "Configure Island Boundary Wall");
             collider.center = Vector3.zero;
-            collider.size = new Vector3(0.65f, height, length);
+            collider.size = new Vector3(thickness, height, length);
             collider.isTrigger = false;
             collider.enabled = true;
             EditorUtility.SetDirty(collider);

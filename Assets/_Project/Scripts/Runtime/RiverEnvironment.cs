@@ -48,18 +48,12 @@ namespace Prince
 
         private void OnDrawGizmosSelected()
         {
-            Vector3 direction = FlowDirection;
-            Vector3 side = new Vector3(-direction.z, 0f, direction.x);
-            Vector3 halfLength = direction * (WallLength * 0.5f);
-            Vector3 offset = side * BankHalfWidth;
-            Gizmos.color = new Color(0.2f, 0.75f, 1f, 0.85f);
-            Gizmos.DrawLine(riverCenter - halfLength + offset, riverCenter + halfLength + offset);
-            Gizmos.DrawLine(riverCenter - halfLength - offset, riverCenter + halfLength - offset);
-            Gizmos.DrawWireSphere(riverCenter, SoundFadeOutDistance);
-
             Gizmos.color = new Color(0.15f, 0.85f, 1f, 0.7f);
-            DrawWallGizmo("River_InvisibleWall_Left");
-            DrawWallGizmo("River_InvisibleWall_Right");
+            Gizmos.DrawWireSphere(riverCenter, SoundFadeOutDistance);
+            DrawWallGizmo("Island_InvisibleWall_West");
+            DrawWallGizmo("Island_InvisibleWall_East");
+            DrawWallGizmo("Island_InvisibleWall_North");
+            DrawWallGizmo("Island_InvisibleWall_South");
         }
 
         private void DrawWallGizmo(string wallName)

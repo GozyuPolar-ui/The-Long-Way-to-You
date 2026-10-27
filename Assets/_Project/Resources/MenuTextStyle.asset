@@ -18,18 +18,35 @@ MonoBehaviour:
   pressedColor: {r: 0.43137255, g: 0.2901961, b: 0.07058824, a: 1}
   disabledColor: {r: 0.13333334, g: 0.1882353, b: 0.30980393, a: 1}
   disabledAlpha: 0.45
-  titleColor: {r: 0.57254905, g: 0.37254903, b: 0.08235294, a: 1}
+  titleColor: {r: 0.25882354, g: 0.1764706, b: 0.08627451, a: 1}
   subtitleColor: {r: 0.23137255, g: 0.16470589, b: 0.101960786, a: 1}
   footerColor: {r: 0.13333334, g: 0.1882353, b: 0.30980393, a: 1}
   lightTextColor: {r: 1, g: 0.9647059, b: 0.8784314, a: 1}
   darkOutlineColor: {r: 0.043137256, g: 0.08627451, b: 0.1882353, a: 1}
   lightOutlineColor: {r: 1, g: 0.9647059, b: 0.8784314, a: 1}
+  menuButtonFontAsset: {fileID: 11400000, guid: d8fc36d8cc4ea2743bea1dc42903f7b2, type: 2}
+  boldMenuButtons: 1
   buttonBaseFontSize: 28
-  buttonFontSizeMultiplier: 1.25
+  buttonFontSizeMultiplier: 1.6875
   titleFontSize: 78
-  subtitleFontSize: 25
+  subtitleFontSize: 31.25
   footerFontSize: 24
-  copyrightFontSize: 21
+  copyrightFontSize: 22
+  buttonCharacterSpacing: 3
+  subtitleCharacterSpacing: 2
+  menuLeftMargin: 76
+  menuButtonSpacing: 78
+  menuTitleOutlineThickness: 0.06
+  menuSubtitleOutlineThickness: 0.06
+  menuButtonOutlineThickness: 0.06
+  menuFooterOutlineThickness: 0.06
+  menuOutlineSoftness: 0.03
+  menuUnderlayColor: {r: 1, g: 0.9647059, b: 0.8784314, a: 0.6}
+  menuUnderlayOffsetX: 0
+  menuUnderlayOffsetY: 0.5
+  menuUnderlayDilate: 0.1
+  menuUnderlaySoftness: 0.3
+  copyrightUnderlayAlpha: 0.35
   buttonOutlineThickness: 0.12
   titleOutlineThickness: 0.15
   subtitleOutlineThickness: 0.08

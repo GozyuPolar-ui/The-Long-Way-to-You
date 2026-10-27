@@ -20,7 +20,7 @@ namespace Prince
         [SerializeField] private Color pressedColor = new Color32(0x6E, 0x4A, 0x12, 0xFF);
         [SerializeField] private Color disabledColor = new Color32(0x22, 0x30, 0x4F, 0xFF);
         [SerializeField, Range(0f, 1f)] private float disabledAlpha = 0.45f;
-        [SerializeField] private Color titleColor = new Color32(0x92, 0x5F, 0x15, 0xFF);
+        [SerializeField] private Color titleColor = new Color32(0x42, 0x2D, 0x16, 0xFF);
         [SerializeField] private Color subtitleColor = new Color32(0x3B, 0x2A, 0x1A, 0xFF);
         [SerializeField] private Color footerColor = new Color32(0x22, 0x30, 0x4F, 0xFF);
         [SerializeField] private Color lightTextColor = new Color32(0xFF, 0xF6, 0xE0, 0xFF);
@@ -28,12 +28,29 @@ namespace Prince
         [SerializeField] private Color lightOutlineColor = new Color32(0xFF, 0xF6, 0xE0, 0xFF);
 
         [Header("Typography")]
+        [SerializeField] private TMP_FontAsset menuButtonFontAsset;
+        [SerializeField] private bool boldMenuButtons = true;
         [SerializeField, Min(1f)] private float buttonBaseFontSize = 28f;
-        [SerializeField, Min(1f)] private float buttonFontSizeMultiplier = 1.25f;
+        [SerializeField, Min(1f)] private float buttonFontSizeMultiplier = 1.6875f;
         [SerializeField, Min(1f)] private float titleFontSize = 78f;
-        [SerializeField, Min(1f)] private float subtitleFontSize = 25f;
+        [SerializeField, Min(1f)] private float subtitleFontSize = 31.25f;
         [SerializeField, Min(1f)] private float footerFontSize = 24f;
-        [SerializeField, Min(1f)] private float copyrightFontSize = 21f;
+        [SerializeField, Min(1f)] private float copyrightFontSize = 22f;
+        [SerializeField, Min(0f)] private float buttonCharacterSpacing = 3f;
+        [SerializeField, Min(0f)] private float subtitleCharacterSpacing = 2f;
+        [SerializeField, Min(0f)] private float menuLeftMargin = 76f;
+        [SerializeField, Min(1f)] private float menuButtonSpacing = 78f;
+        [SerializeField, Range(0f, 1f)] private float menuTitleOutlineThickness = 0.06f;
+        [SerializeField, Range(0f, 1f)] private float menuSubtitleOutlineThickness = 0.06f;
+        [SerializeField, Range(0f, 1f)] private float menuButtonOutlineThickness = 0.06f;
+        [SerializeField, Range(0f, 1f)] private float menuFooterOutlineThickness = 0.06f;
+        [SerializeField, Range(0f, 1f)] private float menuOutlineSoftness = 0.03f;
+        [SerializeField] private Color menuUnderlayColor = new Color32(0xFF, 0xF6, 0xE0, 0x99);
+        [SerializeField, Min(0f)] private float menuUnderlayOffsetX;
+        [SerializeField, Min(0f)] private float menuUnderlayOffsetY = 0.5f;
+        [SerializeField, Range(0f, 1f)] private float menuUnderlayDilate = 0.1f;
+        [SerializeField, Range(0f, 1f)] private float menuUnderlaySoftness = 0.3f;
+        [SerializeField, Range(0f, 1f)] private float copyrightUnderlayAlpha = 0.35f;
         [SerializeField, Range(0f, 1f)] private float buttonOutlineThickness = 0.12f;
         [SerializeField, Range(0f, 1f)] private float titleOutlineThickness = 0.15f;
         [SerializeField, Range(0f, 1f)] private float subtitleOutlineThickness = 0.08f;
@@ -51,7 +68,7 @@ namespace Prince
         public TextStyleMode CurrentStyle => textStyle;
         public Color AuditButtonColor => textStyle == TextStyleMode.LightOnDark ? lightTextColor : buttonColor;
         public Color AuditTitleColor => textStyle == TextStyleMode.LightOnDark ? lightTextColor : titleColor;
-        public Color AuditSubtitleColor => textStyle == TextStyleMode.LightOnDark ? lightTextColor : subtitleColor;
+        public Color AuditSubtitleColor => textStyle == TextStyleMode.LightOnDark ? lightTextColor : buttonColor;
         public Color AuditFooterColor => textStyle == TextStyleMode.LightOnDark ? lightTextColor : footerColor;
         public Color AuditGradientColor => gradientColor;
         public float AuditGradientAlpha => gradientAlpha;
@@ -71,6 +88,7 @@ namespace Prince
             bool lightOnDark = textStyle == TextStyleMode.LightOnDark;
             Color bodyColor = lightOnDark ? lightTextColor : buttonColor;
             Color outline = lightOnDark ? darkOutlineColor : lightOutlineColor;
+            ApplyMenuLayout(root);
             if (gradient != null)
             {
                 gradient.raycastTarget = false;
@@ -80,11 +98,14 @@ namespace Prince
             }
 
             ApplyText(root, "TitleGroup/GameTitle", lightOnDark ? lightTextColor : titleColor,
-                titleFontSize, titleFontSize * 0.72f, titleFontSize, titleOutlineThickness,
+                titleFontSize, titleFontSize * 0.72f, titleFontSize, menuTitleOutlineThickness,
                 outline, FontWeight.Bold, TextAlignmentOptions.MidlineLeft);
-            ApplyText(root, "TitleGroup/GameSubtitle", bodyColorForSubtitle(lightOnDark),
-                subtitleFontSize, subtitleFontSize * 0.8f, subtitleFontSize, subtitleOutlineThickness,
+            ApplyText(root, "TitleGroup/GameSubtitle", bodyColor,
+                subtitleFontSize, subtitleFontSize * 0.8f, subtitleFontSize, menuSubtitleOutlineThickness,
                 outline, FontWeight.SemiBold, TextAlignmentOptions.MidlineLeft);
+            TMP_Text subtitle = root.Find("TitleGroup/GameSubtitle")?.GetComponent<TMP_Text>();
+            if (subtitle != null)
+                subtitle.characterSpacing = subtitleCharacterSpacing;
 
             string[] buttonNames =
             {
@@ -97,16 +118,16 @@ namespace Prince
                 ApplyButton(root, "MainMenuButtons/" + buttonName, outline, bodyColor);
 
             ApplyText(root, "FooterStudio", lightOnDark ? lightTextColor : footerColor,
-                footerFontSize, 17f, footerFontSize, footerOutlineThickness,
+                footerFontSize, 22f, footerFontSize, menuFooterOutlineThickness,
                 outline, FontWeight.SemiBold, TextAlignmentOptions.BottomLeft);
             ApplyText(root, "FooterCopyright", lightOnDark ? lightTextColor : footerColor,
-                copyrightFontSize, 14f, copyrightFontSize, footerOutlineThickness,
-                outline, FontWeight.Medium, TextAlignmentOptions.BottomLeft);
+                copyrightFontSize, 20f, copyrightFontSize, 0f,
+                outline, FontWeight.Medium, TextAlignmentOptions.BottomLeft, copyrightUnderlayAlpha);
             ApplyText(root, "FooterBeta", lightOnDark ? lightTextColor : footerColor,
-                footerFontSize, 17f, footerFontSize, footerOutlineThickness,
+                footerFontSize, 22f, footerFontSize, menuFooterOutlineThickness,
                 outline, FontWeight.SemiBold, TextAlignmentOptions.BottomRight);
             ApplyText(root, "FooterVersion", lightOnDark ? lightTextColor : footerColor,
-                footerFontSize, 17f, footerFontSize, footerOutlineThickness,
+                footerFontSize, 22f, footerFontSize, menuFooterOutlineThickness,
                 outline, FontWeight.SemiBold, TextAlignmentOptions.BottomRight);
         }
 
@@ -151,8 +172,33 @@ namespace Prince
                 bottomGradient.gameObject.SetActive(lightOnDark);
         }
 
-        private Color bodyColorForSubtitle(bool lightOnDark) =>
-            lightOnDark ? lightTextColor : subtitleColor;
+        private void ApplyMenuLayout(Transform root)
+        {
+            SetHorizontalMargin(root.Find("TitleGroup"), menuLeftMargin);
+            Transform buttons = root.Find("MainMenuButtons");
+            SetHorizontalMargin(buttons, menuLeftMargin);
+            string[] names = { "ContinueButton", "NewGameButton", "SettingsButton", "QuitButton" };
+            for (int i = 0; i < names.Length; i++)
+            {
+                RectTransform button = buttons != null
+                    ? buttons.Find(names[i]) as RectTransform
+                    : null;
+                if (button != null)
+                    button.anchoredPosition = new Vector2(button.anchoredPosition.x, -i * menuButtonSpacing);
+            }
+
+            SetHorizontalMargin(root.Find("FooterStudio"), menuLeftMargin);
+            SetHorizontalMargin(root.Find("FooterCopyright"), menuLeftMargin);
+            SetHorizontalMargin(root.Find("FooterBeta"), -menuLeftMargin);
+            SetHorizontalMargin(root.Find("FooterVersion"), -menuLeftMargin);
+        }
+
+        private static void SetHorizontalMargin(Transform target, float margin)
+        {
+            RectTransform rect = target as RectTransform;
+            if (rect != null)
+                rect.anchoredPosition = new Vector2(margin, rect.anchoredPosition.y);
+        }
 
         private void ApplyButton(Transform root, string path, Color outline, Color normalColor)
         {
@@ -171,8 +217,12 @@ namespace Prince
             }
 
             label.color = normalColor;
+            if (menuButtonFontAsset != null)
+                label.font = menuButtonFontAsset;
             label.fontSize = buttonBaseFontSize * buttonFontSizeMultiplier;
-            label.fontWeight = FontWeight.SemiBold;
+            FontWeight weight = boldMenuButtons ? FontWeight.Bold : FontWeight.SemiBold;
+            label.fontWeight = weight;
+            label.characterSpacing = buttonCharacterSpacing;
             label.alignment = TextAlignmentOptions.MidlineLeft;
             label.enableAutoSizing = true;
             label.fontSizeMin = buttonBaseFontSize;
@@ -203,7 +253,7 @@ namespace Prince
             if (fx != null)
                 fx.ConfigureTextStyle(normalColor, highlightedColor, pressedColor,
                     disabledColor, outline, disabledAlpha);
-            ApplyText(label, normalColor, buttonOutlineThickness, outline, FontWeight.SemiBold);
+            ApplyMenuText(label, normalColor, menuButtonOutlineThickness, outline, weight, menuUnderlayColor.a);
             if (fx != null)
                 fx.SetInteractable(buttonTransform.GetComponent<Button>().interactable);
         }
@@ -218,7 +268,8 @@ namespace Prince
             float outlineWidth,
             Color outlineColor,
             FontWeight weight,
-            TextAlignmentOptions alignment)
+            TextAlignmentOptions alignment,
+            float underlayAlpha = -1f)
         {
             Transform textTransform = root.Find(path);
             if (textTransform == null)
@@ -242,7 +293,49 @@ namespace Prince
             text.alignment = alignment;
             text.textWrappingMode = TextWrappingModes.NoWrap;
             text.overflowMode = TextOverflowModes.Overflow;
-            ApplyText(text, color, outlineWidth, outlineColor, weight);
+            ApplyMenuText(text, color, outlineWidth, outlineColor, weight,
+                underlayAlpha < 0f ? menuUnderlayColor.a : underlayAlpha);
+        }
+
+        private void ApplyMenuText(
+            TMP_Text text,
+            Color color,
+            float outlineWidth,
+            Color outlineColor,
+            FontWeight weight,
+            float underlayAlpha)
+        {
+            text.color = color;
+            text.fontWeight = weight;
+            Material instance = text.fontMaterial;
+            if (instance == null)
+            {
+                Debug.LogError($"Could not create an instance of the TMP material for '{text.name}'.", text);
+                return;
+            }
+
+            if (instance.HasProperty("_OutlineColor"))
+                instance.SetColor("_OutlineColor", outlineColor);
+            if (instance.HasProperty("_OutlineWidth"))
+                instance.SetFloat("_OutlineWidth", outlineWidth);
+            if (instance.HasProperty("_OutlineSoftness"))
+                instance.SetFloat("_OutlineSoftness", menuOutlineSoftness);
+            if (instance.HasProperty("_UnderlayColor"))
+            {
+                Color underlay = menuUnderlayColor;
+                underlay.a = underlayAlpha;
+                instance.SetColor("_UnderlayColor", underlay);
+            }
+            if (instance.HasProperty("_UnderlayOffsetX"))
+                instance.SetFloat("_UnderlayOffsetX", menuUnderlayOffsetX);
+            if (instance.HasProperty("_UnderlayOffsetY"))
+                instance.SetFloat("_UnderlayOffsetY", -menuUnderlayOffsetY);
+            if (instance.HasProperty("_UnderlayDilate"))
+                instance.SetFloat("_UnderlayDilate", menuUnderlayDilate);
+            if (instance.HasProperty("_UnderlaySoftness"))
+                instance.SetFloat("_UnderlaySoftness", menuUnderlaySoftness);
+            instance.EnableKeyword("OUTLINE_ON");
+            instance.EnableKeyword("UNDERLAY_ON");
         }
 
         private void ApplyText(
