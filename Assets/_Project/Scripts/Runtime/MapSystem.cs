@@ -283,6 +283,8 @@ namespace Prince
             fullPanel.gameObject.SetActive(true);
             if (settings.openMapSound != null)
                 AudioSource.PlayClipAtPoint(settings.openMapSound, player.position, 0.7f);
+            else
+                UISoundPlayer.Play(UISoundType.MapOpen);
             RenderFullMap();
             UpdateMarkers();
         }
@@ -305,6 +307,8 @@ namespace Prince
                 SetPlayerInputLocked(false);
             if (playSound && settings != null && settings.closeMapSound != null && player != null)
                 AudioSource.PlayClipAtPoint(settings.closeMapSound, player.position, 0.7f);
+            else if (playSound)
+                UISoundPlayer.Play(UISoundType.MapClose);
         }
 
         private void SetPlayerInputLocked(bool value)
@@ -1281,14 +1285,22 @@ namespace Prince
                 float areaZoomLimit = area != null && area.definition != null
                     ? Mathf.Max(area.definition.sizeXZ.x, area.definition.sizeXZ.y) * 0.5f
                     : settings.maximumZoom;
+                float previousZoom = fullZoom;
                 fullZoom = Mathf.Clamp(
                     fullZoom - amount,
                     settings.minimumZoom,
                     Mathf.Max(settings.maximumZoom, areaZoomLimit));
+                if (!Mathf.Approximately(fullZoom, previousZoom))
+                    UISoundPlayer.Play(UISoundType.MapZoom);
                 RenderFullMap();
             }
             else if (!fullMap && pointerOverMini)
+            {
+                float previousZoom = miniZoom;
                 miniZoom = Mathf.Clamp(miniZoom - amount, settings.minimumZoom, settings.maximumZoom);
+                if (!Mathf.Approximately(miniZoom, previousZoom))
+                    UISoundPlayer.Play(UISoundType.MapZoom);
+            }
         }
 
         private void HandleGamepadMapControls()
@@ -1299,11 +1311,14 @@ namespace Prince
             Vector2 pan = panAction.ReadValue<Vector2>();
             if (pan.sqrMagnitude > 0.01f)
             {
+                Vector3 previousCenter = fullMapCenter;
                 Vector3 movement = new Vector3(pan.x, 0f, pan.y) *
                     fullZoom * 1.15f * Time.unscaledDeltaTime;
                 fullMapCenter += movement;
                 ClampFullMapCenter();
                 RenderFullMap();
+                if ((fullMapCenter - previousCenter).sqrMagnitude > 0.0001f)
+                    UISoundPlayer.Play(UISoundType.MapPan);
             }
         }
 
@@ -1365,11 +1380,14 @@ namespace Prince
             pointerStart = eventData.position;
             float worldPerPixel = fullZoom * 2f * area.definition.mapScale /
                 Mathf.Max(1f, fullImageRect.rect.width);
+            Vector3 previousCenter = fullMapCenter;
             fullMapCenter.x -= delta.x * worldPerPixel;
             fullMapCenter.z -= delta.y * worldPerPixel;
             ClampFullMapCenter();
             RenderFullMap();
             UpdateMarkers();
+            if ((fullMapCenter - previousCenter).sqrMagnitude > 0.0001f)
+                UISoundPlayer.Play(UISoundType.MapPan);
         }
 
         internal void OnMapPointerUp(PointerEventData eventData, MapUiSurface.Surface surface)
@@ -1404,6 +1422,7 @@ namespace Prince
                 {
                     Destroy(pingObject);
                     pingObject = null;
+                    UISoundPlayer.Play(UISoundType.MapMarker);
                     RefreshMarkerViewsIfNeeded();
                     return;
                 }
@@ -1418,6 +1437,7 @@ namespace Prince
             marker.color = MarkerColor(MapMarkerType.PlayerPing);
             marker.visibleThroughFog = true;
             marker.icon = GetMarkerSprite(MapMarkerType.PlayerPing);
+            UISoundPlayer.Play(UISoundType.MapMarker);
             RefreshMarkerViewsIfNeeded();
             UpdateMarkers();
         }
@@ -1704,6 +1724,7 @@ namespace Prince
             rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
             Button button = rect.gameObject.AddComponent<Button>();
+            UIButtonSound.Attach(rect.gameObject);
             LayoutElement layout = rect.gameObject.AddComponent<LayoutElement>();
             layout.preferredHeight = height;
             layout.minHeight = height;

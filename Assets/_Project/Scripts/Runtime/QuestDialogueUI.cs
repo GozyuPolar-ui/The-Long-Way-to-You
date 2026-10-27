@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
@@ -46,13 +47,16 @@ namespace Prince
         private Text speakerText;
         private Text messageText;
         private Text promptText;
-        private Button continueButton;
+        private Text continuePromptText;
         private NPCInfo currentNPC;
         private string currentSpeaker;
         private List<string> currentNode;
         private int lineIndex;
         private int selectedChoice;
         private bool isShowingChoices;
+        private bool hasDisplayedDialogueLine;
+        private InputAction continueAction;
+        private float continueInputBlockedUntil;
 
         public static QuestDialogueUI Instance { get; private set; }
         public static bool IsDialogueOpen => Instance != null && Instance.currentNode != null;
@@ -72,18 +76,33 @@ namespace Prince
             if (inputLock == null)
                 inputLock = FindAnyObjectByType<DialogueInputLock>();
 
+            continueAction = new InputAction("Continue Dialogue", InputActionType.Button);
+            continueAction.AddBinding("<Keyboard>/e");
+            continueAction.performed += OnContinuePressed;
+
             RegisterCommandsAndFunctions();
             ParseDialogueSource();
             BuildCanvas();
         }
 
+        private void OnEnable()
+        {
+            continueAction?.Enable();
+        }
+
         private void OnDisable()
         {
+            continueAction?.Disable();
             CloseDialogue();
         }
 
         private void OnDestroy()
         {
+            if (continueAction != null)
+            {
+                continueAction.performed -= OnContinuePressed;
+                continueAction.Dispose();
+            }
             if (Instance == this)
                 Instance = null;
         }
@@ -121,10 +140,13 @@ namespace Prince
             currentChoices.Clear();
             postChoiceLines.Clear();
             isShowingChoices = false;
+            hasDisplayedDialogueLine = false;
             dialoguePanel.SetActive(true);
-            continueButton.gameObject.SetActive(true);
+            UISoundPlayer.Play(UISoundType.Open);
+            continueInputBlockedUntil = Time.unscaledTime + 0.12f;
+            continuePromptText.gameObject.SetActive(true);
             ClearChoiceButtons();
-            SelectUIElement(continueButton.gameObject);
+            SelectUIElement(null);
             if (inputLock != null)
                 inputLock.SetLocked(true);
             AdvanceDialogue();
@@ -141,9 +163,15 @@ namespace Prince
 
         public void ContinueDialogue()
         {
-            if (currentNode == null || isShowingChoices)
+            if (currentNode == null || isShowingChoices ||
+                Time.unscaledTime < continueInputBlockedUntil)
                 return;
             AdvanceDialogue();
+        }
+
+        private void OnContinuePressed(InputAction.CallbackContext context)
+        {
+            ContinueDialogue();
         }
 
         private void AdvanceDialogue()
@@ -151,8 +179,8 @@ namespace Prince
             if (postChoiceLines.Count > 0)
             {
                 ShowDialogueLine(postChoiceLines.Dequeue());
-                continueButton.gameObject.SetActive(true);
-                SelectUIElement(continueButton.gameObject);
+                continuePromptText.gameObject.SetActive(true);
+                SelectUIElement(null);
                 return;
             }
 
@@ -185,8 +213,8 @@ namespace Prince
                     continue;
 
                 ShowDialogueLine(line);
-                continueButton.gameObject.SetActive(true);
-                SelectUIElement(continueButton.gameObject);
+                continuePromptText.gameObject.SetActive(true);
+                SelectUIElement(null);
                 return;
             }
 
@@ -195,6 +223,11 @@ namespace Prince
 
         private void ShowDialogueLine(string line)
         {
+            if (hasDisplayedDialogueLine)
+                UISoundPlayer.Play(UISoundType.DialogueAdvance);
+            else
+                hasDisplayedDialogueLine = true;
+
             int separator = line.IndexOf(':');
             if (separator > 0 && separator < 32)
             {
@@ -209,7 +242,7 @@ namespace Prince
         {
             currentChoices.Clear();
             isShowingChoices = true;
-            continueButton.gameObject.SetActive(false);
+            continuePromptText.gameObject.SetActive(false);
             choiceContainer.SetActive(true);
             ReadChoice(firstRawLine);
 
@@ -547,6 +580,7 @@ namespace Prince
 
         private void CloseDialogue()
         {
+            bool wasOpen = currentNode != null;
             currentNode = null;
             currentNPC = null;
             isShowingChoices = false;
@@ -559,8 +593,12 @@ namespace Prince
                 choiceContainer.SetActive(false);
             if (inputLock != null)
                 inputLock.SetLocked(false);
+            if (wasOpen)
+                UISoundPlayer.Play(UISoundType.Close);
             if (promptText != null)
                 promptText.transform.parent.gameObject.SetActive(false);
+            if (continuePromptText != null)
+                continuePromptText.gameObject.SetActive(false);
             if (canvas != null && EventSystem.current != null)
             {
                 GameObject selected = EventSystem.current.currentSelectedGameObject;
@@ -642,17 +680,18 @@ namespace Prince
             layout.childControlWidth = true;
             layout.childForceExpandWidth = true;
 
-            continueButton = QuestUIElements.CreateButton(
-                "Continue", "Lanjutkan", panel, 48f);
-            RectTransform continueRect = continueButton.GetComponent<RectTransform>();
+            continuePromptText = QuestUIElements.CreateText(
+                "ContinuePrompt", panel, GameLocalization.Get("Tekan E untuk melanjutkan"),
+                18, TextAnchor.MiddleCenter);
+            RectTransform continueRect = continuePromptText.rectTransform;
             continueRect.anchorMin = new Vector2(1f, 0f);
             continueRect.anchorMax = new Vector2(1f, 0f);
             continueRect.pivot = new Vector2(1f, 0f);
             continueRect.anchoredPosition = new Vector2(-28f, 20f);
             continueRect.sizeDelta = new Vector2(310f, 48f);
-            continueButton.onClick.AddListener(ContinueDialogue);
 
             dialoguePanel.SetActive(false);
+            continuePromptText.gameObject.SetActive(false);
             choiceContainer.SetActive(false);
         }
 
@@ -743,6 +782,7 @@ namespace Prince
             Image image = gameObject.GetComponent<Image>();
             image.color = new Color(0.22f, 0.18f, 0.12f, 0.96f);
             Button button = gameObject.GetComponent<Button>();
+            UIButtonSound.Attach(gameObject);
             ColorBlock colors = button.colors;
             colors.highlightedColor = new Color(0.8f, 0.62f, 0.28f);
             colors.pressedColor = new Color(0.65f, 0.46f, 0.17f);

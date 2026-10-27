@@ -25,6 +25,7 @@ namespace Prince
                 tooltip.text = GameLocalization.Get(
                     mapSystem != null ? mapSystem.GetMarkerTooltip(marker) : marker.DisplayName);
                 tooltip.gameObject.SetActive(true);
+                UISoundPlayer.Play(UISoundType.MapMarker);
             }
         }
 

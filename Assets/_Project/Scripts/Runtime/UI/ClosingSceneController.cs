@@ -20,6 +20,7 @@ namespace Prince
         [SerializeField] private ClosingData data;
         [SerializeField] private TMP_FontAsset menuFont;
         [SerializeField] private TMP_FontAsset titleFont;
+        [SerializeField] private MenuTextStyle textStyle;
         [SerializeField, Min(1f)] private float screenMargin = 76f;
 
         private Canvas menuCanvas;
@@ -94,6 +95,8 @@ namespace Prince
                 return;
             }
             data.SetLanguage(GameLocalization.CurrentLanguage);
+            if (textStyle == null)
+                textStyle = Resources.Load<MenuTextStyle>("MenuTextStyle");
 
             menuCanvas = GetComponent<Canvas>();
             if (menuCanvas == null)
@@ -174,11 +177,13 @@ namespace Prince
 
             Button feedback = CreateButton(content, "FeedbackButton", data.FeedbackButton,
                 new Vector2(screenMargin, -688f), new Vector2(455f, 58f), ToggleFeedbackQr, 26f);
+            UIButtonSound.SetClickSound(feedback.gameObject, UISoundType.None);
             feedback.gameObject.SetActive(true);
             BuildFeedbackQr(content);
 
             Button contact = CreateButton(content, "ContactButton", data.ContactButton,
                 new Vector2(screenMargin, -756f), new Vector2(455f, 58f), ToggleContacts, 26f);
+            UIButtonSound.SetClickSound(contact.gameObject, UISoundType.None);
             contact.gameObject.SetActive(HasContactLinks());
             BuildContactButtons(content);
 
@@ -190,6 +195,9 @@ namespace Prince
                 menuFont, FontStyles.Normal);
             copiedLabel.gameObject.SetActive(false);
             copiedGroup = copiedLabel.gameObject.AddComponent<CanvasGroup>();
+
+            if (textStyle != null)
+                textStyle.ApplyClosingScene(canvasRect);
         }
 
         private void BuildContactButtons(RectTransform parent)
@@ -353,7 +361,12 @@ namespace Prince
         {
             Transform contacts = transform.Find("ClosingContent/DeveloperLinks");
             if (contacts != null)
+            {
+                UISoundPlayer.Play(contacts.gameObject.activeSelf
+                    ? UISoundType.Close
+                    : UISoundType.Open);
                 contacts.gameObject.SetActive(!contacts.gameObject.activeSelf);
+            }
         }
 
         private bool HasContactLinks() =>
@@ -371,6 +384,9 @@ namespace Prince
                 return;
             }
 
+            UISoundPlayer.Play(feedbackQrPanel.activeSelf
+                ? UISoundType.Close
+                : UISoundType.Open);
             feedbackQrPanel.SetActive(!feedbackQrPanel.activeSelf);
         }
 

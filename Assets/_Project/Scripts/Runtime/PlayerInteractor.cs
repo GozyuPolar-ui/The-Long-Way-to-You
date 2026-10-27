@@ -25,6 +25,8 @@ namespace Prince
 
         private void OnEnable()
         {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
             interactAction?.Enable();
         }
 

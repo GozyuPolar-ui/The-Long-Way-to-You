@@ -83,6 +83,7 @@ namespace Prince
             Button button = rect.gameObject.AddComponent<Button>();
             button.targetGraphic = image;
             button.transition = Selectable.Transition.None;
+            UIButtonSound.Attach(rect.gameObject);
             TextMeshProUGUI text = Text("Label", rect, label, 28f, Cream, TextAlignmentOptions.MidlineLeft);
             text.fontWeight = FontWeight.SemiBold;
             if (font != null)

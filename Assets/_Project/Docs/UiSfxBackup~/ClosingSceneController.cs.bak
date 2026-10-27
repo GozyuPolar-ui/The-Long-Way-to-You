@@ -1,0 +1,523 @@
+using System.Collections;
+using TMPro;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.Video;
+
+namespace Prince
+{
+    [DisallowMultipleComponent]
+    public sealed class ClosingSceneController : MonoBehaviour
+    {
+        private static bool hasReturnState;
+        private static CursorLockMode returnCursorLockState;
+        private static bool returnCursorVisible;
+        private static string returnActionMap;
+
+        [SerializeField] private ClosingData data;
+        [SerializeField] private TMP_FontAsset menuFont;
+        [SerializeField] private TMP_FontAsset titleFont;
+        [SerializeField] private MenuTextStyle textStyle;
+        [SerializeField, Min(1f)] private float screenMargin = 76f;
+
+        private Canvas menuCanvas;
+        private CanvasGroup contentGroup;
+        private TMP_Text copiedLabel;
+        private CanvasGroup copiedGroup;
+        private MenuMusicPlayer menuMusic;
+        private VideoPlayer videoPlayer;
+        private Button firstButton;
+        private GameObject feedbackQrPanel;
+        private Coroutine copyMessageRoutine;
+        private bool transitionStarted;
+        private Texture2D gradientTexture;
+        private Sprite gradientSprite;
+
+        public void Configure(ClosingData closingData, TMP_FontAsset bodyFont, TMP_FontAsset headingFont)
+        {
+            data = closingData;
+            menuFont = bodyFont;
+            titleFont = headingFont;
+        }
+
+        public static void CaptureReturnState()
+        {
+            hasReturnState = true;
+            returnCursorLockState = Cursor.lockState;
+            returnCursorVisible = Cursor.visible;
+            PlayerInput input = FindFirstObjectByType<PlayerInput>();
+            returnActionMap = input != null && input.currentActionMap != null
+                ? input.currentActionMap.name
+                : string.Empty;
+        }
+
+        public static void RestoreCursorState()
+        {
+            if (!hasReturnState)
+                return;
+
+            Cursor.lockState = returnCursorLockState;
+            Cursor.visible = returnCursorVisible;
+        }
+
+        public static void RestoreActionMap(PlayerInput input)
+        {
+            if (!hasReturnState || input == null || string.IsNullOrWhiteSpace(returnActionMap) ||
+                input.actions == null)
+                return;
+
+            InputActionMap map = input.actions.FindActionMap(returnActionMap, false);
+            if (map == null)
+            {
+                Debug.LogWarning(
+                    $"The previous PlayerInput action map '{returnActionMap}' does not exist in the current scene.",
+                    input);
+                return;
+            }
+
+            if (input.currentActionMap != map)
+                input.SwitchCurrentActionMap(returnActionMap);
+        }
+
+        private void Awake()
+        {
+            Time.timeScale = 1f;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            if (data == null)
+            {
+                Debug.LogError("ClosingSceneController has no ClosingData asset assigned.", this);
+                enabled = false;
+                return;
+            }
+            data.SetLanguage(GameLocalization.CurrentLanguage);
+            if (textStyle == null)
+                textStyle = Resources.Load<MenuTextStyle>("MenuTextStyle");
+
+            menuCanvas = GetComponent<Canvas>();
+            if (menuCanvas == null)
+            {
+                Debug.LogError("ClosingSceneController must be attached to the copied Main Menu Canvas.", this);
+                enabled = false;
+                return;
+            }
+
+            menuMusic = FindFirstObjectByType<MenuMusicPlayer>();
+            videoPlayer = FindFirstObjectByType<VideoPlayer>();
+            RemovePersistentSceneFaders();
+            BuildClosingUI();
+        }
+
+        private void Start()
+        {
+            if (contentGroup != null)
+            {
+                contentGroup.alpha = 0f;
+                StartCoroutine(FadeGroup(contentGroup, 1f, 0.7f));
+            }
+
+            if (firstButton != null && EventSystem.current != null)
+                EventSystem.current.SetSelectedGameObject(firstButton.gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            if (videoPlayer != null)
+            {
+                videoPlayer.Stop();
+                videoPlayer.targetTexture = null;
+            }
+            if (gradientSprite != null)
+                Destroy(gradientSprite);
+            if (gradientTexture != null)
+                Destroy(gradientTexture);
+        }
+
+        private void BuildClosingUI()
+        {
+            RectTransform canvasRect = menuCanvas.transform as RectTransform;
+            if (canvasRect == null)
+            {
+                Debug.LogError("The Closing Canvas has no RectTransform.", this);
+                return;
+            }
+
+            Color dim = new Color(0.025f, 0.035f, 0.045f, data.BackgroundDim);
+            MenuUIFactory.Image("ClosingDim", canvasRect, dim, Vector2.zero, Vector2.one,
+                Vector2.zero, Vector2.zero);
+            CreateBottomGradient(canvasRect);
+
+            RectTransform content = MenuUIFactory.Rect("ClosingContent", canvasRect, Vector2.zero,
+                Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            contentGroup = content.gameObject.AddComponent<CanvasGroup>();
+
+            TMP_Text title = CreateText("ClosingTitle", content, data.Title, 56f,
+                MenuUIFactory.TitleGold, new Vector2(screenMargin, -118f), new Vector2(1000f, 76f),
+                titleFont, FontStyles.Bold);
+            title.characterSpacing = 1.4f;
+
+            CreateText("ClosingMessage", content, data.Message, 30f,
+                MenuUIFactory.Cream, new Vector2(screenMargin, -212f), new Vector2(1100f, 105f),
+                menuFont, FontStyles.Bold);
+            TMP_Text loreTitle = CreateText("ClosingLoreTitle", content, data.LoreTitle, 19f,
+                MenuUIFactory.Gold, new Vector2(screenMargin, -340f), new Vector2(1100f, 36f),
+                menuFont, FontStyles.Bold);
+            loreTitle.characterSpacing = 2.8f;
+            CreateText("ClosingLore", content, data.Lore, 24f,
+                MenuUIFactory.Cream, new Vector2(screenMargin, -382f), new Vector2(1180f, 220f),
+                menuFont, FontStyles.Bold);
+
+            Button explore = CreateButton(content, "ExploreButton", data.ExploreButton,
+                new Vector2(screenMargin, -620f), new Vector2(455f, 58f), ExploreAgain, 28f);
+            firstButton = explore;
+
+            Button feedback = CreateButton(content, "FeedbackButton", data.FeedbackButton,
+                new Vector2(screenMargin, -688f), new Vector2(455f, 58f), ToggleFeedbackQr, 26f);
+            feedback.gameObject.SetActive(true);
+            BuildFeedbackQr(content);
+
+            Button contact = CreateButton(content, "ContactButton", data.ContactButton,
+                new Vector2(screenMargin, -756f), new Vector2(455f, 58f), ToggleContacts, 26f);
+            contact.gameObject.SetActive(HasContactLinks());
+            BuildContactButtons(content);
+
+            CreateButton(content, "MainMenuButton", data.MainMenuButton,
+                new Vector2(screenMargin, -824f), new Vector2(455f, 54f), ReturnToMainMenu, 23f);
+
+            copiedLabel = CreateText("CopiedMessage", content, data.CopiedMessage, 20f,
+                MenuUIFactory.TitleGold, new Vector2(screenMargin, -884f), new Vector2(460f, 32f),
+                menuFont, FontStyles.Normal);
+            copiedLabel.gameObject.SetActive(false);
+            copiedGroup = copiedLabel.gameObject.AddComponent<CanvasGroup>();
+
+            if (textStyle != null)
+                textStyle.ApplyClosingScene(canvasRect);
+        }
+
+        private void BuildContactButtons(RectTransform parent)
+        {
+            RectTransform root = MenuUIFactory.Rect("DeveloperLinks", parent,
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(screenMargin + 485f, -970f), new Vector2(760f, 58f));
+
+            Button github = CreateButton(root, "GitHubButton", data.GitHubButton,
+                Vector2.zero, new Vector2(175f, 54f), OpenGitHub, 21f);
+            github.gameObject.SetActive(!string.IsNullOrWhiteSpace(data.GitHubUrl));
+
+            Button instagram = CreateButton(root, "InstagramButton", data.InstagramButton,
+                new Vector2(190f, 0f), new Vector2(175f, 54f), OpenInstagram, 21f);
+            instagram.gameObject.SetActive(!string.IsNullOrWhiteSpace(data.InstagramUrl));
+
+            Button email = CreateButton(root, "EmailButton", data.EmailButton,
+                new Vector2(380f, 0f), new Vector2(150f, 54f), OpenEmail, 21f);
+            email.gameObject.SetActive(!string.IsNullOrWhiteSpace(data.DeveloperEmail));
+
+            Button copyEmail = CreateButton(root, "CopyEmailButton", data.CopyEmailButton,
+                new Vector2(540f, 0f), new Vector2(190f, 54f), CopyEmail, 20f);
+            copyEmail.gameObject.SetActive(!string.IsNullOrWhiteSpace(data.DeveloperEmail));
+            root.gameObject.SetActive(false);
+        }
+
+        private void BuildFeedbackQr(RectTransform parent)
+        {
+            if (data.FeedbackQr == null)
+            {
+                Debug.LogWarning(
+                    "ClosingData has no feedback QR sprite. Run Tools > Prince > Setup Closing Scene to import and assign Assets/_Project/UI/Feedback/qrcode.png.",
+                    this);
+                return;
+            }
+
+            RectTransform panel = MenuUIFactory.Panel(
+                "FeedbackQrPanel",
+                parent,
+                new Vector2(0f, 1f),
+                new Vector2(0f, 1f),
+                new Vector2(screenMargin + 485f, -620f),
+                new Vector2(340f, 340f));
+            feedbackQrPanel = panel.gameObject;
+            Image qrImage = MenuUIFactory.Image(
+                "FeedbackQrImage",
+                panel,
+                Color.white,
+                Vector2.zero,
+                Vector2.one,
+                Vector2.zero,
+                Vector2.zero);
+            RectTransform qrRect = qrImage.rectTransform;
+            qrRect.offsetMin = new Vector2(12f, 12f);
+            qrRect.offsetMax = new Vector2(-12f, -12f);
+            qrImage.sprite = data.FeedbackQr;
+            qrImage.preserveAspect = true;
+            qrImage.raycastTarget = false;
+            feedbackQrPanel.SetActive(false);
+        }
+
+        private TMP_Text CreateText(
+            string name,
+            Transform parent,
+            string value,
+            float size,
+            Color color,
+            Vector2 topLeftPosition,
+            Vector2 dimensions,
+            TMP_FontAsset font,
+            FontStyles style)
+        {
+            TMP_Text text = MenuUIFactory.Text(name, parent, value, size, color);
+            RectTransform rect = text.rectTransform;
+            SetTopLeftRect(rect, topLeftPosition, dimensions);
+            text.fontStyle = style;
+            text.textWrappingMode = TextWrappingModes.Normal;
+            text.overflowMode = TextOverflowModes.Ellipsis;
+            if (font != null)
+                text.font = font;
+            return text;
+        }
+
+        private Button CreateButton(
+            Transform parent,
+            string name,
+            string label,
+            Vector2 topLeftPosition,
+            Vector2 dimensions,
+            UnityEngine.Events.UnityAction action,
+            float fontSize)
+        {
+            Button button = MenuUIFactory.Button(name, parent, label, menuFont);
+            RectTransform rect = button.GetComponent<RectTransform>();
+            SetTopLeftRect(rect, topLeftPosition, dimensions);
+            TMP_Text text = button.GetComponentInChildren<TMP_Text>(true);
+            if (text != null)
+            {
+                text.fontSize = fontSize;
+                text.fontWeight = FontWeight.SemiBold;
+            }
+            button.onClick.AddListener(action);
+            Navigation navigation = button.navigation;
+            navigation.mode = Navigation.Mode.Automatic;
+            button.navigation = navigation;
+            return button;
+        }
+
+        private void CreateBottomGradient(RectTransform parent)
+        {
+            GameObject gradientObject = new GameObject(
+                "ClosingBottomGradient",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image));
+            gradientObject.transform.SetParent(parent, false);
+            RectTransform rect = gradientObject.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = new Vector2(1f, 0.58f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            Image image = gradientObject.GetComponent<Image>();
+            image.raycastTarget = false;
+
+            const int height = 128;
+            gradientTexture = new Texture2D(1, height, TextureFormat.RGBA32, false, true)
+            {
+                name = "Closing Scene Bottom Gradient",
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            Color32[] pixels = new Color32[height];
+            for (int y = 0; y < height; y++)
+            {
+                float t = y / (float)(height - 1);
+                float alpha = 0.68f * (1f - t) * (1f - t);
+                pixels[y] = new Color(0.025f, 0.035f, 0.045f, alpha);
+            }
+
+            gradientTexture.SetPixels32(pixels);
+            gradientTexture.Apply(false, true);
+            gradientSprite = Sprite.Create(gradientTexture,
+                new Rect(0f, 0f, 1f, height), new Vector2(0.5f, 0.5f), height);
+            gradientSprite.name = "Closing Scene Bottom Gradient";
+            gradientSprite.hideFlags = HideFlags.HideAndDontSave;
+            image.sprite = gradientSprite;
+            image.type = Image.Type.Simple;
+        }
+
+        private void SetTopLeftRect(RectTransform rect, Vector2 position, Vector2 size)
+        {
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(position.x, position.y);
+            rect.sizeDelta = size;
+        }
+
+        private void ToggleContacts()
+        {
+            Transform contacts = transform.Find("ClosingContent/DeveloperLinks");
+            if (contacts != null)
+                contacts.gameObject.SetActive(!contacts.gameObject.activeSelf);
+        }
+
+        private bool HasContactLinks() =>
+            !string.IsNullOrWhiteSpace(data.GitHubUrl) ||
+            !string.IsNullOrWhiteSpace(data.InstagramUrl) ||
+            !string.IsNullOrWhiteSpace(data.DeveloperEmail);
+
+        private void ToggleFeedbackQr()
+        {
+            if (feedbackQrPanel == null)
+            {
+                Debug.LogWarning(
+                    "The feedback QR panel is unavailable. Check the QR sprite assigned to ClosingData.",
+                    this);
+                return;
+            }
+
+            feedbackQrPanel.SetActive(!feedbackQrPanel.activeSelf);
+        }
+
+        private void OpenGitHub()
+        {
+            OpenUrl(data.GitHubUrl, "GitHub");
+        }
+
+        private void OpenInstagram()
+        {
+            OpenUrl(data.InstagramUrl, "Instagram");
+        }
+
+        private void OpenEmail()
+        {
+            if (string.IsNullOrWhiteSpace(data.DeveloperEmail))
+                return;
+            Application.OpenURL($"mailto:{data.DeveloperEmail}");
+        }
+
+        private void OpenUrl(string url, string label)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                Debug.LogWarning($"The ClosingData {label} URL is empty; no page was opened.", this);
+                return;
+            }
+            Application.OpenURL(url);
+        }
+
+        private void CopyEmail()
+        {
+            if (string.IsNullOrWhiteSpace(data.DeveloperEmail))
+                return;
+
+            GUIUtility.systemCopyBuffer = data.DeveloperEmail;
+            if (copyMessageRoutine != null)
+                StopCoroutine(copyMessageRoutine);
+            copyMessageRoutine = StartCoroutine(ShowCopiedMessage());
+        }
+
+        private IEnumerator ShowCopiedMessage()
+        {
+            copiedLabel.gameObject.SetActive(true);
+            copiedGroup.alpha = 0f;
+            yield return FadeGroup(copiedGroup, 1f, 0.2f);
+            yield return new WaitForSecondsRealtime(1.1f);
+            yield return FadeGroup(copiedGroup, 0f, 0.35f);
+            copiedLabel.gameObject.SetActive(false);
+            copyMessageRoutine = null;
+        }
+
+        private void ExploreAgain()
+        {
+            BeginTransition(data.ForestSceneName, true);
+        }
+
+        private void ReturnToMainMenu()
+        {
+            BeginTransition(data.MainMenuSceneName, false);
+        }
+
+        private void BeginTransition(string sceneName, bool restoreGameplayState)
+        {
+            if (transitionStarted)
+                return;
+
+            if (string.IsNullOrWhiteSpace(sceneName))
+            {
+                Debug.LogError("ClosingData has an empty destination scene name.", this);
+                return;
+            }
+
+            transitionStarted = true;
+            if (firstButton != null)
+                firstButton.interactable = false;
+            if (menuMusic != null)
+                menuMusic.FadeOut(data.TransitionFadeDuration);
+            StartCoroutine(ExitRoutine(sceneName, restoreGameplayState));
+        }
+
+        private IEnumerator ExitRoutine(string sceneName, bool restoreGameplayState)
+        {
+            yield return FadeGroup(contentGroup, 0f, data.TransitionFadeDuration);
+            if (videoPlayer != null)
+                videoPlayer.Stop();
+
+            if (restoreGameplayState)
+            {
+                SceneManager.sceneLoaded += RestoreGameplayStateWhenLoaded;
+                SceneManager.sceneUnloaded += ClearOneTimeRestoreHook;
+            }
+            SceneLoader.Load(sceneName);
+        }
+
+        private static void RestoreGameplayStateWhenLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.name == "UNS_Demo")
+            {
+                PlayerInput input = FindFirstObjectByType<PlayerInput>();
+                if (input != null)
+                    RestoreActionMap(input);
+                RestoreCursorState();
+                SceneManager.sceneLoaded -= RestoreGameplayStateWhenLoaded;
+                SceneManager.sceneUnloaded -= ClearOneTimeRestoreHook;
+            }
+        }
+
+        private static void ClearOneTimeRestoreHook(Scene scene)
+        {
+            if (scene.name == "Closing")
+                return;
+            SceneManager.sceneLoaded -= RestoreGameplayStateWhenLoaded;
+            SceneManager.sceneUnloaded -= ClearOneTimeRestoreHook;
+        }
+
+        private static void RemovePersistentSceneFaders()
+        {
+            SceneFader[] faders = FindObjectsByType<SceneFader>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None);
+            for (int i = 0; i < faders.Length; i++)
+                if (faders[i] != null)
+                    Destroy(faders[i].gameObject);
+        }
+
+        private static IEnumerator FadeGroup(CanvasGroup group, float target, float duration)
+        {
+            if (group == null)
+                yield break;
+
+            float effectiveDuration = Mathf.Max(1f / 60f, duration);
+            float start = group.alpha;
+            float elapsed = 0f;
+            while (elapsed < effectiveDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                group.alpha = Mathf.Lerp(start, target, Mathf.Clamp01(elapsed / effectiveDuration));
+                yield return null;
+            }
+            group.alpha = target;
+        }
+    }
+}

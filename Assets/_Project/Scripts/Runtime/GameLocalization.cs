@@ -60,6 +60,7 @@ namespace Prince
 
             Add("Tekan E untuk berbicara: {0}", "Press E to talk: {0}");
             Add("Tekan E untuk mengambil {0}", "Press E to pick up {0}");
+            Add("Tekan E untuk melanjutkan", "Press E to continue");
             Add("Bicara dengan Bram untuk menerima misi", "Talk to Bram to accept the quest");
             Add("Beruang itu sedang menjaganya.", "The bear is guarding it.");
             Add("Tekan E untuk berinteraksi", "Press E to interact");

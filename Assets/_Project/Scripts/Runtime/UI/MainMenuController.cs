@@ -23,6 +23,7 @@ namespace Prince
         [SerializeField] private TMP_FontAsset menuFont;
         [SerializeField] private TMP_FontAsset titleFont;
         [SerializeField] private MenuMusicPlayer menuMusicPlayer;
+        [SerializeField] private MenuTextStyle textStyle;
         [SerializeField, Range(0f, 1.5f)] private float titleFadeDuration = 1.5f;
         [SerializeField, Range(0f, 1f)] private float backgroundDim = 0.6f;
         [SerializeField, Range(0.1f, 1f)] private float gradientWidth = 0.55f;
@@ -53,6 +54,8 @@ namespace Prince
                 menuFont = TMP_Settings.defaultFontAsset;
             if (titleFont == null)
                 titleFont = menuFont;
+            if (textStyle == null)
+                textStyle = Resources.Load<MenuTextStyle>("MenuTextStyle");
             if (menuCanvas == null)
             {
                 Debug.LogError("MainMenuController requires a Canvas.", this);
@@ -112,6 +115,13 @@ namespace Prince
             BuildFooter(mainGroup);
             BuildSettings(canvasRect);
             BuildConfirmation(canvasRect);
+            if (textStyle != null)
+            {
+                Image gradient = gradientTransform != null
+                    ? gradientTransform.GetComponent<Image>()
+                    : null;
+                textStyle.ApplyMainMenu(mainGroup, gradient, menuVideoBackground);
+            }
         }
 
         private void BuildTitle(Transform parent)
@@ -170,6 +180,8 @@ namespace Prince
             Button button = MenuUIFactory.Button(name, parent, label, menuFont);
             Place(button.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0f, 1f),
                 new Vector2(0f, 1f), new Vector2(0f, y), new Vector2(430f, 58f));
+            if (name == "NewGameButton" || name == "QuitButton")
+                UIButtonSound.SetClickSound(button.gameObject, UISoundType.None);
             button.onClick.AddListener(action);
             return button;
         }
@@ -281,6 +293,7 @@ namespace Prince
                 ShowConfirmation(MenuStrings.StartNewConfirmation, MenuStrings.Confirm);
                 return;
             }
+            UISoundPlayer.Play(UISoundType.Click);
             BeginNewGame();
         }
 
@@ -318,6 +331,7 @@ namespace Prince
 
         private void ShowConfirmation(string message, string confirmLabel)
         {
+            UISoundPlayer.Play(UISoundType.Open);
             TextMeshProUGUI text = confirmationRoot.Find("ConfirmationMessage").GetComponent<TextMeshProUGUI>();
             text.text = GameLocalization.Get(message);
             confirmationRoot.Find("ConfirmAction/Label").GetComponent<TextMeshProUGUI>().text =

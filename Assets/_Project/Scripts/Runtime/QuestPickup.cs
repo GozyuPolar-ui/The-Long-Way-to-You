@@ -67,13 +67,19 @@ namespace Prince
             {
                 BearAI guard = FindGuardBear();
                 if (guard != null && !guard.IsDead)
+                {
+                    UISoundPlayer.Play(UISoundType.Error);
                     return;
+                }
                 if (guard == null)
                     WarnMissingBear();
             }
 
             if (requiredQuest != null && manager.GetState(requiredQuest.id) != QuestState.Active)
+            {
+                UISoundPlayer.Play(UISoundType.Error);
                 return;
+            }
 
             if (requiredQuest != null)
                 manager.SetObjectiveDone(requiredQuest.id, BearDefeatObjectiveId);
@@ -81,6 +87,8 @@ namespace Prince
             manager.NotifyTargetCollected(questTarget.targetId);
             if (pickupSound != null)
                 AudioSource.PlayClipAtPoint(pickupSound, transform.position, soundVolume);
+            else
+                UISoundPlayer.Play(UISoundType.Pickup);
             gameObject.SetActive(false);
         }
 

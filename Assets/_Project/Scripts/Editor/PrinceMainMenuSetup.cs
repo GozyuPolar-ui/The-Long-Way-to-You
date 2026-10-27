@@ -26,6 +26,8 @@ namespace Prince.Editor
             "Assets/_Project/UI/MainMenu/Gambar backup.jpeg";
         private const string MenuVideoTexturePath =
             "Assets/_Project/Rendering/MainMenu/MenuVideo.renderTexture";
+        private const string MenuTextStylePath =
+            "Assets/_Project/Resources/MenuTextStyle.asset";
         private const string MenuFontSourcePath =
             "Assets/_Project/Fonts/Cinzel_Decorative,Cormorant_Garamond,MedievalSharp/Cormorant_Garamond/static/CormorantGaramond-SemiBold.ttf";
         private const string TitleFontSourcePath =
@@ -63,6 +65,13 @@ namespace Prince.Editor
                     out TMP_FontAsset titleFont))
                 return;
 
+            MenuTextStyle textStyle = GetOrCreateTextStyle();
+            if (textStyle == null)
+            {
+                Debug.LogError($"Could not create or load MenuTextStyle at '{MenuTextStylePath}'.");
+                return;
+            }
+
             Scene previousActiveScene = SceneManager.GetActiveScene();
             Scene menuScene = SceneManager.GetSceneByPath(MenuScenePath);
             bool openedMenuScene = false;
@@ -80,7 +89,8 @@ namespace Prince.Editor
             RemoveGeneratedMenuObjects(menuScene);
             SceneManager.SetActiveScene(menuScene);
             BuildCamera(menuScene);
-            BuildCanvas(menuScene, menuVideo, fallbackImage, videoTexture, menuMusic, musicGroup, font, titleFont);
+            BuildCanvas(menuScene, menuVideo, fallbackImage, videoTexture, menuMusic, musicGroup,
+                font, titleFont, textStyle);
             SceneFader fader = BuildFader(menuScene);
             MainMenuController controller =
                 FindComponentInScene<MainMenuController>(menuScene);
@@ -97,7 +107,22 @@ namespace Prince.Editor
 
             RestoreEditorScenes(previousActiveScene, menuScene, openedMenuScene);
             AssetDatabase.SaveAssets();
+            PrinceMainMenuTextContrastAudit.Audit(textStyle);
             Debug.Log("Existing Main-Menu scene updated with improved text contrast and menu BGM.");
+        }
+
+        private static MenuTextStyle GetOrCreateTextStyle()
+        {
+            MenuTextStyle style = AssetDatabase.LoadAssetAtPath<MenuTextStyle>(MenuTextStylePath);
+            if (style != null)
+                return style;
+
+            EnsureFolder("Assets/_Project/Resources");
+            style = ScriptableObject.CreateInstance<MenuTextStyle>();
+            style.name = "MenuTextStyle";
+            AssetDatabase.CreateAsset(style, MenuTextStylePath);
+            AssetDatabase.SaveAssets();
+            return AssetDatabase.LoadAssetAtPath<MenuTextStyle>(MenuTextStylePath);
         }
 
         private static bool ValidateAssets(
@@ -207,7 +232,8 @@ namespace Prince.Editor
             AudioClip musicClip,
             AudioMixerGroup musicGroup,
             TMP_FontAsset font,
-            TMP_FontAsset titleFont)
+            TMP_FontAsset titleFont,
+            MenuTextStyle textStyle)
         {
             GameObject canvasObject = FindGameObjectInScene(scene, MainCanvasName);
             if (canvasObject == null)
@@ -288,6 +314,7 @@ namespace Prince.Editor
             SetReference(controller, "menuMusicPlayer", musicPlayer);
             SetReference(controller, "menuFont", font);
             SetReference(controller, "titleFont", titleFont);
+            SetReference(controller, "textStyle", textStyle);
             SetFloat(controller, "titleFadeDuration", 1.5f);
             SetFloat(controller, "backgroundDim", 0.6f);
             SetFloat(controller, "gradientWidth", 0.55f);

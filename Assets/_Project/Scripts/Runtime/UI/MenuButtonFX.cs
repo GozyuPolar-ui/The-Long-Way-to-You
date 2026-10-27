@@ -18,6 +18,9 @@ namespace Prince
         private Color normalColor = MenuUIFactory.Cream;
         private Color highlightedColor = MenuUIFactory.Gold;
         private Color pressedColor = MenuUIFactory.Muted;
+        private Color disabledColor = MenuUIFactory.Cream;
+        private Color outlineColor = MenuUIFactory.Cream;
+        private float disabledAlpha = 0.45f;
         private float targetHighlight;
         private bool pressed;
         private bool interactable = true;
@@ -33,6 +36,24 @@ namespace Prince
             normalColor = normal;
             highlightedColor = highlighted;
             pressedColor = pressedText;
+            disabledColor = normal;
+        }
+
+        public void ConfigureTextStyle(
+            Color normal,
+            Color highlighted,
+            Color pressedText,
+            Color disabled,
+            Color outline,
+            float disabledTextAlpha)
+        {
+            normalColor = normal;
+            highlightedColor = highlighted;
+            pressedColor = pressedText;
+            disabledColor = disabled;
+            outlineColor = outline;
+            disabledAlpha = Mathf.Clamp01(disabledTextAlpha);
+            ApplyOutlineAlpha();
         }
 
         public void SetInteractable(bool value)
@@ -44,6 +65,7 @@ namespace Prince
                 targetScale = 1f;
                 pressed = false;
             }
+            ApplyOutlineAlpha();
         }
 
         private void Awake()
@@ -63,7 +85,7 @@ namespace Prince
             if (label != null)
             {
                 Color targetColor = !interactable
-                    ? new Color(pressedColor.r, pressedColor.g, pressedColor.b, 0.72f)
+                    ? new Color(disabledColor.r, disabledColor.g, disabledColor.b, disabledAlpha)
                     : pressed ? pressedColor : targetHighlight > 0.5f ? highlightedColor : normalColor;
                 label.color = Color.Lerp(label.color, targetColor, amount);
             }
@@ -109,6 +131,19 @@ namespace Prince
             targetHighlight = highlighted ? 1f : 0f;
             targetScale = highlighted ? highlightedScale : 1f;
             pressed = false;
+        }
+
+        private void ApplyOutlineAlpha()
+        {
+            if (label == null)
+                return;
+            Material material = label.fontMaterial;
+            if (material == null || !material.HasProperty("_OutlineColor"))
+                return;
+
+            Color color = outlineColor;
+            color.a = interactable ? 1f : disabledAlpha;
+            material.SetColor("_OutlineColor", color);
         }
     }
 }
