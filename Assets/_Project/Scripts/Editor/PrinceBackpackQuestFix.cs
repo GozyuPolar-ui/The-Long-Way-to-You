@@ -94,6 +94,7 @@ namespace Prince.Editor
                 BearAI bear = FindGuardBear(forestScene, backpack);
                 if (!ConfigureBearTargets(forestScene, bear))
                     return;
+                OrientGuardBearTowardBram(bear, forestScene);
                 if (!ConfigureBackpackPickup(backpack, quest, bear))
                     return;
                 ConfigureCompletionTrigger(manager, quest);
@@ -118,7 +119,7 @@ namespace Prince.Editor
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log(
-                "Backpack quest flow fixed. The existing backpack, quest, guarding bear, and forest scene were updated without duplicating scene objects.");
+                "Backpack quest flow fixed. The backpack, quest objectives, guarding bear, tracker target, and forest scene were updated without duplicating scene objects.");
         }
 
         private static bool CreateBackups()
@@ -317,6 +318,36 @@ namespace Prince.Editor
             }
 
             return nearest;
+        }
+
+        private static void OrientGuardBearTowardBram(BearAI bear, Scene scene)
+        {
+            if (bear == null)
+                return;
+
+            BackpackQuestPlacement placement = FindComponent<BackpackQuestPlacement>(scene);
+            if (placement == null)
+            {
+                Debug.LogWarning(
+                    "BackpackQuestPlacement is missing; the guarding bear's current facing direction was preserved.",
+                    bear);
+                return;
+            }
+
+            Vector3 direction = placement.BramPosition - bear.transform.position;
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.001f)
+            {
+                Debug.LogWarning(
+                    "Bram and the guarding bear share the same position; the bear's current facing direction was preserved.",
+                    bear);
+                return;
+            }
+
+            Undo.RecordObject(bear.transform, "Face Guard Bear Toward Bram");
+            bear.transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(bear.transform);
+            EditorUtility.SetDirty(bear.transform);
         }
 
         private static QuestPickup CreateBackpack(Scene scene)

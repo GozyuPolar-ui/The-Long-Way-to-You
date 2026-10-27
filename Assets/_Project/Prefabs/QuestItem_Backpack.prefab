@@ -87,6 +87,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Prince.QuestPickup
   questTarget: {fileID: 8523533315187358542}
   requiredQuest: {fileID: 11400000, guid: f752d9b6820ec8544902091cd5d90d10, type: 2}
+  requireBearDefeated: 1
+  bearGuard: {fileID: 0}
   pickupSound: {fileID: 0}
   soundVolume: 1
 --- !u!114 &6273086238920802902

@@ -16,9 +16,12 @@ MonoBehaviour:
   title: Ransel Sang Pemburu
   description: 'Ransel Bram sudah dikembalikan. Hadiah: Peta Hutan.'
   objectives:
+  - id: defeat_guarding_bear
+    description: Kalahkan beruang yang menjaga ransel.
+    type: 2
+    targetId: guarding_bear
   - id: find_bram_backpack
-    description: Bram kehilangan ranselnya saat dikejar babi hutan. Cari di dekat
-      sungai.
+    description: Ambil ransel Bram di dekat sungai.
     type: 0
     targetId: bram_backpack
   - id: return_backpack_to_bram

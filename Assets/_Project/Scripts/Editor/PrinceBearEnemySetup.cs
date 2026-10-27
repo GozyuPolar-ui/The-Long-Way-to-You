@@ -127,7 +127,7 @@ namespace Prince.Editor
                     bear.name = "Bear_Enemy";
                     bear.transform.SetPositionAndRotation(
                         spawnPosition,
-                        Quaternion.LookRotation(PlanarDirection(backpackPosition - spawnPosition), Vector3.up));
+                        Quaternion.LookRotation(PlanarDirection(bramPosition - spawnPosition), Vector3.up));
                     BearAI ai = bear.GetComponent<BearAI>();
                     if (ai == null)
                     {

@@ -186327,6 +186327,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6345731497091135974, guid: d3c42707ce7ed7c4a983431e05500750, type: 3}
+      propertyPath: bearGuard
+      value: 
+      objectReference: {fileID: 778908444}
     - target: {fileID: 7120993324461728438, guid: d3c42707ce7ed7c4a983431e05500750, type: 3}
       propertyPath: m_Name
       value: Ransel_Bram
@@ -308969,7 +308973,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1277102596681592418, guid: dfe590e1aa9a60f4da97bfbba010782d, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7071068
+      value: 0.122183256
       objectReference: {fileID: 0}
     - target: {fileID: 1277102596681592418, guid: dfe590e1aa9a60f4da97bfbba010782d, type: 3}
       propertyPath: m_LocalRotation.x
@@ -308977,7 +308981,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1277102596681592418, guid: dfe590e1aa9a60f4da97bfbba010782d, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.7071068
+      value: 0.9925076
       objectReference: {fileID: 0}
     - target: {fileID: 1277102596681592418, guid: dfe590e1aa9a60f4da97bfbba010782d, type: 3}
       propertyPath: m_LocalRotation.z
@@ -309020,6 +309024,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dfe590e1aa9a60f4da97bfbba010782d, type: 3}
+--- !u!114 &778908444 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7380473510599212990, guid: dfe590e1aa9a60f4da97bfbba010782d, type: 3}
+  m_PrefabInstance: {fileID: 778908443}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cafe385c930342f8add8256f42a25b44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Prince.BearAI
 --- !u!4 &778910979 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1575901116381070661, guid: 4db940c31d61ac149801c850fc645d68, type: 3}
