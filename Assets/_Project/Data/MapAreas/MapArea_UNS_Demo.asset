@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e7c3d3e41a74dc5a66c3080468d7012, type: 3}
+  m_Name: MapArea_UNS_Demo
+  m_EditorClassIdentifier: Assembly-CSharp::Prince.MapAreaDefinition
+  areaName: The Long Way to You
+  areaDescription: Jelajahi jalur, hutan, dan tempat-tempat penting di wilayah ini.
+  centerXZ: {x: 0, y: 0}
+  sizeXZ: {x: 103, y: 103}
+  cameraHeight: 200
+  mapScale: 1
+  parchmentTint: {r: 0.67, g: 0.53, b: 0.34, a: 1}
+  accentColor: {r: 0.73, g: 0.56, b: 0.28, a: 1}
+  parchmentTexture: {fileID: 0}
+  pointsOfInterest: []

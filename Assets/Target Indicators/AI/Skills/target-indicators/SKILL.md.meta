@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0c66267059c1075418c18fd7d85a9ad9
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/AI/Skills/target-indicators/SKILL.md
+  uploadId: 1019306

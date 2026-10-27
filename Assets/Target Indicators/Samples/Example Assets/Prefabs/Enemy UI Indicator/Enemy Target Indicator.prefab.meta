@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d979bb381bdb72c4494d81e7817a477a
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/Samples/Example Assets/Prefabs/Enemy UI Indicator/Enemy
+    Target Indicator.prefab
+  uploadId: 1019306

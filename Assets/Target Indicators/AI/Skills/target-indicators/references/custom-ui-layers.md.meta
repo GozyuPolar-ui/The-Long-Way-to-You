@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 8b0442e4ae073c6488738b10bfba3533
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/AI/Skills/target-indicators/references/custom-ui-layers.md
+  uploadId: 1019306

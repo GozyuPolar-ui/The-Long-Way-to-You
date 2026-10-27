@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: f3563fbf5f244d44788b2fe9a335de62
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/package.json
+  uploadId: 1019306

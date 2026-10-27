@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c51d891fbf054a908dbffda6fca9a2f1, type: 3}
+  m_Name: NPC_Villager
+  m_EditorClassIdentifier: Assembly-CSharp::Prince.NPCRoleDefinition
+  roleName: Villager
+  requiredPieces: 
+  optionalPieces:
+  - piece: 0
+    chance: 0.8
+  - piece: 5
+    chance: 0.65
+  - piece: 6
+    chance: 0.25
+  - piece: 7
+    chance: 0.2
+  - piece: 8
+    chance: 0.1
+  - piece: 9
+    chance: 0.3
+  topChoices: 0100000002000000
+  bottomChoices: 0400000003000000
+  bodyChoices: 0000000001000000
+  clothingPalette:
+  - {r: 0.54901963, g: 0.3882353, b: 0.27450982, a: 1}
+  - {r: 0.4, g: 0.4392157, b: 0.2784314, a: 1}
+  - {r: 0.54901963, g: 0.27058825, b: 0.2509804, a: 1}
+  - {r: 0.6392157, g: 0.5529412, b: 0.42745098, a: 1}
+  - {r: 0.3254902, g: 0.41568628, b: 0.44705883, a: 1}
+  skinPalette:
+  - {r: 0.8980392, g: 0.7254902, b: 0.6039216, a: 1}
+  - {r: 0.8392157, g: 0.6313726, b: 0.49803922, a: 1}
+  - {r: 0.94509804, g: 0.8117647, b: 0.7058824, a: 1}
+  - {r: 0.7254902, g: 0.50980395, b: 0.38431373, a: 1}
+  hairPalette:
+  - {r: 0.2, g: 0.14117648, b: 0.12156863, a: 1}
+  - {r: 0.35686275, g: 0.22745098, b: 0.18039216, a: 1}
+  - {r: 0.14117648, g: 0.105882354, b: 0.09803922, a: 1}
+  - {r: 0.6509804, g: 0.6313726, b: 0.6039216, a: 1}
+  scaleRange: {x: 0.95, y: 1.05}
+  idleClips:
+  - {fileID: -3100369314251171874, guid: 12e52e465ed793a4d801955e9f964a82, type: 3}
+  - {fileID: 7804281696320516629, guid: 99ba2dab2137f0445992b3992d994bfe, type: 3}
+  dialogueClips:
+  - {fileID: -5572525269873154919, guid: 80677d8fb56d4c44aa8104eaf0864d8b, type: 3}
+  - {fileID: 1004136064394597514, guid: 248a8473996db5a4e9b55accb67f4b48, type: 3}
+  - {fileID: -9036972124816686986, guid: 4eac042e6844ba449bb6d5c9b6ffb5db, type: 3}
+  - {fileID: -8523214319182235554, guid: 6b0e4688c7afd324fab95d5194e0ab57, type: 3}
+  - {fileID: -1105731507409099037, guid: 7081132a5e0fafe4083d31afd331429f, type: 3}
+  lookAtPlayer: 1

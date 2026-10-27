@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: de8766e0887fe6a479409f325a561f4e
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/AI/Skills/target-indicators/references/visual-styling.md
+  uploadId: 1019306

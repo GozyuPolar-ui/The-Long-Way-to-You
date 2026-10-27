@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11261a57a5064e6f888e144d3999e245, type: 3}
+  m_Name: LoadingLoreData
+  m_EditorClassIdentifier: Assembly-CSharp::Prince.LoadingLoreData
+  entries:
+  - image: {fileID: 2800000, guid: 2247d6d89193e4a46b9ac085a3a7ad90, type: 3}
+    titleIndonesian: EDEN
+    textIndonesian: Hutan mimpi. Saking indahnya, siapa pun yang masuk tidak akan
+      bisa keluar.
+    titleEnglish: EDEN
+    textEnglish: A forest of dreams. So beautiful that no one who enters can ever
+      leave.
+    displayDuration: 7
+  activeLanguage: 0
+  enableLoadingScreen: 1
+  useLoreSlides: 1
+  randomizeSlides: 1
+  useCrossFade: 1
+  useSlowZoom: 1
+  showProgressBar: 1
+  waitForInput: 1
+  useScreenFade: 1
+  minimumDisplayDuration: 1.5
+  fadeDuration: 0.4
+  crossFadeDuration: 0.6
+  zoomAmount: 0.05
+  progressUnitsPerSecond: 0.8

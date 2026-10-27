@@ -1,0 +1,47 @@
+title: Bram_Start
+---
+<<if quest_state("hunter_backpack") == "NotStarted">>
+Bram: Hei, kau! Jangan lewat situ sembarangan. Eh... pakaianmu bagus sekali. Kau bukan orang sini, ya?
+Pangeran: Aku sedang dalam perjalanan menuju kerajaan seberang. Ada yang bisa kubantu?
+Bram: Perjalanan jauh, ya. Hmm... Sebenarnya ada. Tadi pagi aku dikejar babi hutan di dekat sungai. Aku lari tunggang-langgang dan ranselku jatuh di sana.
+Bram: Di dalamnya ada peta, tali, dan sedikit bekalku. Tanpa itu aku tidak bisa berburu seminggu ini.
+Pangeran: Tenang saja. Di mana tepatnya?
+-> Aku akan mengambilnya.
+    <<start_quest hunter_backpack>>
+    <<goto Bram_Accepted>>
+-> Seperti apa ransel itu?
+    <<goto Bram_BackpackDescription>>
+-> Maaf, aku belum bisa sekarang.
+    Bram: Tidak apa-apa. Aku tidak ke mana-mana. Kembalilah kapan saja.
+<<elseif quest_state("hunter_backpack") == "Active">>
+Bram: Sudah ketemu? Dekat sungai, ranselnya cokelat dengan tali merah. Ikuti jalan setapak saja.
+Pangeran: Belum, aku masih mencari.
+Bram: Pelan-pelan saja. Hutan ini tidak ke mana-mana.
+<<elseif quest_state("hunter_backpack") == "ReadyToTurnIn">>
+Pangeran: Bram, ini ranselmu.
+Bram: Itu dia! Astaga, kau benar-benar menemukannya!
+Bram: Tali merahnya masih ada. Petaku... masih utuh. Bekalku... yah, tinggal separuh. Pasti dimakan tikus.
+Bram: Terima kasih, Nak. Tidak ada yang mau repot membantu pemburu tua seperti aku.
+Pangeran: Aku senang bisa membantu.
+Bram: Tunggu. Ambil ini, Peta Hutan sebagai hadiah kecil dariku.
+<<complete_quest hunter_backpack>>
+Bram: Kalau kau lewat desa di timur, sebut namaku. Kau akan disambut dengan baik di sana.
+<<else>>
+Bram: Hati-hati di jalan. Semoga perjalananmu lancar.
+<<endif>>
+===
+title: Bram_BackpackDescription
+---
+Bram: Cokelat tua, kulitnya sudah belel, ada tali merah di sisinya. Susah dilewatkan.
+Bram: Oh, satu lagi. Babi itu masih berkeliaran di sekitar sana. Jangan sok berani. Kalau pingsan, kau akan terbangun di api unggun. Aku sudah pernah.
+-> Aku akan mengambilnya.
+    <<start_quest hunter_backpack>>
+    <<goto Bram_Accepted>>
+-> Maaf, aku belum bisa sekarang.
+    Bram: Tidak apa-apa. Aku tidak ke mana-mana. Kembalilah kapan saja.
+===
+title: Bram_Accepted
+---
+Bram: Kau baik sekali, Pangeran... eh, maksudku, orang asing. Ikuti jalan setapak ke arah sungai. Ranselnya jatuh dekat situ.
+Bram: Hati-hati dengan babi itu. Hindari dulu kalau bisa, hadapi kalau perlu.
+===

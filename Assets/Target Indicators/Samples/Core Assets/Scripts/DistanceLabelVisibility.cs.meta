@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 102452564d1c4841ab7959fef6dbd7c3
+timeCreated: 1781738477
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/Samples/Core Assets/Scripts/DistanceLabelVisibility.cs
+  uploadId: 1019306

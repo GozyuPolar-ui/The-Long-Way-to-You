@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: be2f222db195aa2419ae4301055e4f8d
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/Samples/Example Assets/Shaders/GridShader.shader
+  uploadId: 1019306

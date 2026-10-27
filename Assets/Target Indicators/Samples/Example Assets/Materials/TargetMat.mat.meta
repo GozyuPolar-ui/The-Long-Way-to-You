@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8cf25f063802c5744b8e2b9ca430695e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/Samples/Example Assets/Materials/TargetMat.mat
+  uploadId: 1019306

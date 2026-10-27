@@ -1,0 +1,18 @@
+{
+    "name": "TargetIndicators.Samples",
+    "rootNamespace": "TargetIndicators.Samples",
+    "references": [
+        "TargetIndicators",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

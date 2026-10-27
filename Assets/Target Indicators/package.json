@@ -1,0 +1,24 @@
+{
+    "name": "com.jakemanfre.targetindicators",
+    "displayName": "Target Indicators",
+    "version": "1.5.0",
+    "unity": "6000.0",
+    "description": "Target Indicators is a Unity package that enables you to create visual indicators to track world-space targets. Guide users to points of interest, waypoints, or other in-game places. Customize indicators to fit your project's style and requirements. \n\nThe package integrates with any UI system, offering an API to calculate and bound screen-space positions for any target. It includes ready-to-use Sample Assets for a quick, low-code setup, also serving as an excellent references for building fully custom visual indicators. \n\nDocumentation: https://jakemanfre.github.io/target-indicators.github.io/manual/index.html",
+    "documentationUrl": "https://jakemanfre.github.io/target-indicators.github.io/manual/index.html",
+    "changelogUrl": "https://jakemanfre.github.io/target-indicators.github.io/CHANGELOG.html",
+    "author": "Jake Manfre",
+    "keywords" : [
+        "target indicators",
+        "target",
+        "indicators",
+        "waypoint indicators",
+        "waypoint",
+        "screen markers",
+        "markers"
+    ],
+    "dependencies": {
+        "com.unity.inputsystem": "1.14.0",
+        "com.unity.ugui": "2.0.0",
+        "com.unity.textmeshpro": "3.0.0"
+    }
+}

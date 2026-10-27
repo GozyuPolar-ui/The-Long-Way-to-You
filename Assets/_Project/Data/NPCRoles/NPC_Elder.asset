@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c51d891fbf054a908dbffda6fca9a2f1, type: 3}
+  m_Name: NPC_Elder
+  m_EditorClassIdentifier: Assembly-CSharp::Prince.NPCRoleDefinition
+  roleName: Elder
+  requiredPieces: 02000000000000000300000005000000
+  optionalPieces:
+  - piece: 9
+    chance: 0.1
+  topChoices: 02000000
+  bottomChoices: 03000000
+  bodyChoices: 01000000
+  clothingPalette:
+  - {r: 0.46666667, g: 0.45882353, b: 0.43529412, a: 1}
+  - {r: 0.6509804, g: 0.6039216, b: 0.50980395, a: 1}
+  - {r: 0.3882353, g: 0.3647059, b: 0.33333334, a: 1}
+  skinPalette:
+  - {r: 0.8980392, g: 0.7254902, b: 0.6039216, a: 1}
+  - {r: 0.8392157, g: 0.6313726, b: 0.49803922, a: 1}
+  - {r: 0.94509804, g: 0.8117647, b: 0.7058824, a: 1}
+  hairPalette:
+  - {r: 0.84313726, g: 0.83137256, b: 0.8, a: 1}
+  - {r: 0.6666667, g: 0.6627451, b: 0.6431373, a: 1}
+  - {r: 0.54509807, g: 0.5372549, b: 0.5137255, a: 1}
+  scaleRange: {x: 0.91, y: 0.99}
+  idleClips:
+  - {fileID: -3100369314251171874, guid: 12e52e465ed793a4d801955e9f964a82, type: 3}
+  - {fileID: 7804281696320516629, guid: 99ba2dab2137f0445992b3992d994bfe, type: 3}
+  dialogueClips:
+  - {fileID: -5572525269873154919, guid: 80677d8fb56d4c44aa8104eaf0864d8b, type: 3}
+  - {fileID: 1004136064394597514, guid: 248a8473996db5a4e9b55accb67f4b48, type: 3}
+  - {fileID: -9036972124816686986, guid: 4eac042e6844ba449bb6d5c9b6ffb5db, type: 3}
+  - {fileID: -8523214319182235554, guid: 6b0e4688c7afd324fab95d5194e0ab57, type: 3}
+  - {fileID: -1105731507409099037, guid: 7081132a5e0fafe4083d31afd331429f, type: 3}
+  lookAtPlayer: 1

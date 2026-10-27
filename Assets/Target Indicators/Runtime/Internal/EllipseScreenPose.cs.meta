@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 698c097c28aa400cade0f63e48054ae0
+timeCreated: 1749540201
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/Runtime/Internal/EllipseScreenPose.cs
+  uploadId: 1019306

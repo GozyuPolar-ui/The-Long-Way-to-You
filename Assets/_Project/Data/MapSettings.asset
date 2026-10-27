@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e7c3d3e41a74dc5a66c3080468d7016, type: 3}
+  m_Name: MapSettings
+  m_EditorClassIdentifier: Assembly-CSharp::Prince.MapSettings
+  quality: 1
+  minimapResolution: 768
+  fullMapResolution: 2048
+  renderDistance: 500
+  rotateMinimap: 1
+  minimapSize: 240
+  minimapOpacity: 0.9
+  minimapEdgeMargin: 24
+  defaultZoom: 40
+  minimumZoom: 30
+  maximumZoom: 150
+  zoomStep: 8
+  fogOfWar: 1
+  showTreesOnMap: 0
+  showCompassTape: 1
+  lockInputOnFullMap: 1
+  mapTintStrength: 0.3
+  mapVignetteStrength: 0.2
+  revealRadius: 40
+  revealInterval: 0.2
+  revealResolution: 256
+  openMapSound: {fileID: 0}
+  closeMapSound: {fileID: 0}

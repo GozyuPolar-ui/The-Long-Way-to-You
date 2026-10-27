@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1df0a655fcf235b4584124605180f331
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/Samples/Example Assets/Materials/Room/WallSmallGridMat.mat
+  uploadId: 1019306

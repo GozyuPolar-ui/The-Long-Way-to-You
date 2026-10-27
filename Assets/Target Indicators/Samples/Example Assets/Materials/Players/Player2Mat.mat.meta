@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 793ec37064cd3cb41a8bc0dfd781256e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/Samples/Example Assets/Materials/Players/Player2Mat.mat
+  uploadId: 1019306

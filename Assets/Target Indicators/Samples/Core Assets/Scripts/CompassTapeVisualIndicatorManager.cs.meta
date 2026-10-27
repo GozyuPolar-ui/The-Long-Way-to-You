@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 7aadc88acd8745f6a612f3b70e687fc4
+timeCreated: 1749621139
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/Samples/Core Assets/Scripts/CompassTapeVisualIndicatorManager.cs
+  uploadId: 1019306

@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 66dfe857e050470c8cd0ca947e8f0c47
+timeCreated: 1749540193
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/Runtime/Internal/RectangleScreenPose.cs
+  uploadId: 1019306

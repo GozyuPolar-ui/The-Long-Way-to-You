@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: f5fd76a38549b5b42abe8f299878168a
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 324272
+  packageName: Off-Screen & Compass Tape Target Indicators
+  packageVersion: 1.5.0
+  assetPath: Assets/Target Indicators/Editor/TargetIndicators.Editor.asmdef
+  uploadId: 1019306

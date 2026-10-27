@@ -1,22 +1,26 @@
 # Unity generated files
-[Ll]ibrary/
-[Tt]emp/
-[Oo]bj/
-[Bb]uild/
-[Bb]uilds/
-[Ll]ogs/
-[Uu]ser[Ss]ettings/
-[Mm]emoryCaptures/
-[Rr]ecordings/
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+/[Ee]xported[Oo]bj/
+/.gradle/
 
 # IDE and generated project files
 .vs/
 .idea/
 *.csproj
 *.sln
+*.sln.docstates
 *.suo
 *.user
 *.userprefs
+*.csproj.user
 *.pidb
 *.booproj
 *.svclog
@@ -29,3 +33,9 @@
 # Crash reports and editor-generated files
 sysinfo.txt
 *.stackdump
+*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
