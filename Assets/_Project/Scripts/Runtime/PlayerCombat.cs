@@ -33,6 +33,8 @@ namespace Prince
 
         private InputAction _attackAction;
         private InputAction _toggleWeaponAction;
+        private AttackBuffer _attackBuffer;
+        private CombatFeel _combatFeel;
         private int _combatLayerIndex = -1;
         private bool _isAttacking;
         private bool _drawPending;
@@ -49,6 +51,8 @@ namespace Prince
         private float _lastCombatInputTime;
         private int _currentCombo;
 
+        public bool IsAttacking => _isAttacking;
+
         private void Awake()
         {
             if (animator == null)
@@ -63,6 +67,8 @@ namespace Prince
                 movementController = GetComponent<ThirdPersonController>();
             if (characterController == null)
                 characterController = GetComponent<CharacterController>();
+            _attackBuffer = GetComponent<AttackBuffer>();
+            _combatFeel = GetComponent<CombatFeel>();
 
             _attackAction = new InputAction("Attack", InputActionType.Button);
             _attackAction.AddBinding("<Mouse>/leftButton");
@@ -92,6 +98,8 @@ namespace Prince
 
             if (weaponHitbox != null)
                 weaponHitbox.SetHitboxActive(false);
+            if (_combatFeel != null)
+                _combatFeel.EndAttack();
         }
 
         private void OnDestroy()
@@ -326,6 +334,8 @@ namespace Prince
             _isAttacking = true;
             _fallbackWindowStarted = false;
             _nextAttackTime = Time.time + attackCooldown;
+            if (_combatFeel != null)
+                _combatFeel.BeginAttack(_currentCombo);
             SetAnimatorBool("IsArmed", true);
             SetAnimatorInt("ComboIndex", _currentCombo);
             CrossFadeToAttack(_currentCombo);
@@ -334,7 +344,11 @@ namespace Prince
         private void BufferAttack()
         {
             _bufferedAttack = true;
-            _bufferExpiresAt = Time.time + comboInputBuffer;
+            if (_attackBuffer != null && _combatFeel != null &&
+                _combatFeel.Settings != null && _combatFeel.Settings.attackBufferEnabled)
+                _attackBuffer.Queue(_combatFeel.GetBufferDuration(comboInputBuffer));
+            else
+                _bufferExpiresAt = Time.time + comboInputBuffer;
         }
 
         private void UpdateAttackState()
@@ -355,14 +369,16 @@ namespace Prince
             {
                 UpdateFallbackHitWindow(state.normalizedTime);
 
-                if (stateCombo < 3 && _bufferedAttack && Time.time <= _bufferExpiresAt &&
+                if (stateCombo < 3 && HasBufferedAttack() &&
                     Time.time >= _nextAttackTime &&
-                    state.normalizedTime >= comboTransitionNormalizedTime)
+                    state.normalizedTime >= GetComboTransitionTime())
                 {
-                    _bufferedAttack = false;
+                    ClearBufferedAttack();
                     _currentCombo = stateCombo + 1;
                     _nextAttackTime = Time.time + attackCooldown;
                     _fallbackWindowStarted = false;
+                    if (_combatFeel != null)
+                        _combatFeel.BeginAttack(_currentCombo);
                     if (weaponHitbox != null)
                         weaponHitbox.SetHitboxActive(false);
                     SetAnimatorInt("ComboIndex", _currentCombo);
@@ -375,9 +391,9 @@ namespace Prince
         {
             if (!_bufferedAttack)
                 return;
-            if (Time.time > _bufferExpiresAt)
+            if (!HasBufferedAttack())
             {
-                _bufferedAttack = false;
+                ClearBufferedAttack();
                 return;
             }
             if (weaponHolster == null || _isAttacking || _drawPending || _sheathPending ||
@@ -385,8 +401,49 @@ namespace Prince
                 Time.time < _nextAttackTime || !CanAttack())
                 return;
 
-            _bufferedAttack = false;
+            ClearBufferedAttack();
             StartAttack(1);
+        }
+
+        public bool CancelAttackForJump()
+        {
+            if (!_isAttacking)
+                return false;
+
+            _isAttacking = false;
+            _currentCombo = 0;
+            _fallbackWindowStarted = false;
+            ClearBufferedAttack();
+            if (weaponHitbox != null)
+                weaponHitbox.SetHitboxActive(false);
+            if (_combatFeel != null)
+                _combatFeel.EndAttack();
+            CrossFadeToEmpty();
+            return true;
+        }
+
+        private bool HasBufferedAttack()
+        {
+            if (!_bufferedAttack)
+                return false;
+            if (_attackBuffer != null && _combatFeel != null &&
+                _combatFeel.Settings != null && _combatFeel.Settings.attackBufferEnabled)
+                return _attackBuffer.HasBufferedAttack;
+            return Time.time <= _bufferExpiresAt;
+        }
+
+        private void ClearBufferedAttack()
+        {
+            _bufferedAttack = false;
+            if (_attackBuffer != null)
+                _attackBuffer.Clear();
+        }
+
+        private float GetComboTransitionTime()
+        {
+            return _combatFeel != null
+                ? _combatFeel.GetCancelWindowStart(comboTransitionNormalizedTime)
+                : comboTransitionNormalizedTime;
         }
 
         private int GetAttackStateCombo(AnimatorStateInfo state)
@@ -406,12 +463,18 @@ namespace Prince
                 return;
 
             float normalized = Mathf.Clamp01(normalizedTime);
-            if (!_fallbackWindowStarted && normalized >= fallbackHitStart)
+            float hitStart = _combatFeel != null
+                ? _combatFeel.GetFallbackHitStart(fallbackHitStart)
+                : fallbackHitStart;
+            float hitEnd = _combatFeel != null
+                ? _combatFeel.GetFallbackHitEnd(fallbackHitEnd)
+                : fallbackHitEnd;
+            if (!_fallbackWindowStarted && normalized >= hitStart)
             {
                 _fallbackWindowStarted = true;
                 weaponHitbox.OnAttackHitStart();
             }
-            else if (_fallbackWindowStarted && normalized >= fallbackHitEnd)
+            else if (_fallbackWindowStarted && normalized >= hitEnd)
             {
                 _fallbackWindowStarted = false;
                 weaponHitbox.SetHitboxActive(false);
@@ -422,6 +485,9 @@ namespace Prince
         {
             _isAttacking = false;
             _currentCombo = 0;
+            _fallbackWindowStarted = false;
+            if (_combatFeel != null)
+                _combatFeel.EndAttack();
             if (weaponHitbox != null)
                 weaponHitbox.SetHitboxActive(false);
         }

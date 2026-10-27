@@ -37,6 +37,7 @@ namespace Prince
         private bool hasTrackedTarget;
         private bool hiddenByMap;
         private float completionExpiresAt;
+        private QuestDefinition completedQuest;
 
         private void Awake()
         {
@@ -60,6 +61,7 @@ namespace Prince
 
         private void OnEnable()
         {
+            GameLocalization.LanguageChanged += OnLanguageChanged;
             if (questManager == null)
                 questManager = QuestManager.Instance;
             if (questManager != null)
@@ -86,6 +88,7 @@ namespace Prince
 
         private void OnDisable()
         {
+            GameLocalization.LanguageChanged -= OnLanguageChanged;
             if (questManager != null)
             {
                 questManager.OnQuestChanged -= OnQuestChanged;
@@ -99,10 +102,11 @@ namespace Prince
             if (completionExpiresAt > 0f && Time.unscaledTime >= completionExpiresAt)
             {
                 completionExpiresAt = 0f;
+                completedQuest = null;
                 if (questHeaderText != null)
-                    questHeaderText.text = "MISI AKTIF";
+                    questHeaderText.text = GameLocalization.Get("ACTIVE QUEST");
                 if (questTitleText != null)
-                    questTitleText.text = "Belum ada misi";
+                    questTitleText.text = GameLocalization.Get("No active quest");
                 if (questObjectiveText != null)
                     questObjectiveText.text = string.Empty;
                 if (questPanel != null)
@@ -160,7 +164,7 @@ namespace Prince
                 return;
             }
 
-            string targetId = objectives[0].objective.targetId;
+            string targetId = QuestManager.GetTrackedTargetId(objectives[0]);
             if (questManager.TryGetTarget(targetId, out QuestTarget target))
             {
                 unresolvedTargetId = null;
@@ -211,7 +215,7 @@ namespace Prince
                     new Vector2((relative / 180f) * compassWidth * 0.5f, -30f);
             }
 
-            targetLabel.text = activeTarget.displayName;
+            targetLabel.text = GameLocalization.Get(activeTarget.displayName);
             distanceText.text = $"{indicator.Distance:0} m";
             targetMarkerImage.sprite = activeTarget.icon;
             targetMarkerImage.enabled = activeTarget.icon != null;
@@ -251,7 +255,7 @@ namespace Prince
                 direction = inFront ? Vector2.up : Vector2.down;
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
             offscreenArrow.localEulerAngles = new Vector3(0f, 0f, angle);
-            offscreenLabel.text = $"{activeTarget.displayName}  {indicator.Distance:0} m";
+            offscreenLabel.text = $"{GameLocalization.Get(activeTarget.displayName)}  {indicator.Distance:0} m";
         }
 
         private void SetTargetUIVisible(bool visible)
@@ -284,8 +288,8 @@ namespace Prince
                 return;
             }
 
-            questHeaderText.text = "MISI AKTIF";
-            questTitleText.text = "Belum ada misi";
+            questHeaderText.text = GameLocalization.Get("ACTIVE QUEST");
+            questTitleText.text = GameLocalization.Get("No active quest");
             questObjectiveText.text = string.Empty;
             if (questManager == null)
                 questManager = QuestManager.Instance;
@@ -297,28 +301,50 @@ namespace Prince
                 return;
 
             QuestObjectiveProgress active = objectives[0];
-            questTitleText.text = active.quest != null ? active.quest.title : "Misi";
+            questTitleText.text = GameLocalization.Get(
+                active.quest != null ? active.quest.title : "Quest");
             questObjectiveText.text = active.objective != null
-                ? "- " + active.objective.description
+                ? "- " + GameLocalization.Get(active.objective.description)
                 : string.Empty;
+        }
+
+        private void OnLanguageChanged(LoadingLoreLanguage language)
+        {
+            if (completionExpiresAt > Time.unscaledTime && completedQuest != null)
+            {
+                if (questHeaderText != null)
+                    questHeaderText.text = GameLocalization.Get("QUEST COMPLETE");
+                if (questTitleText != null)
+                    questTitleText.text = GameLocalization.Get(completedQuest.title);
+                if (questObjectiveText != null)
+                    questObjectiveText.text = GameLocalization.Get(completedQuest.description);
+            }
+            else
+            {
+                RefreshQuestText();
+            }
+
+            RefreshActiveTarget();
         }
 
         private void OnQuestChanged(QuestDefinition definition, QuestProgress progress)
         {
             if (definition != null && progress != null && progress.state == QuestState.Completed)
             {
+                completedQuest = definition;
                 completionExpiresAt = Time.unscaledTime + 8f;
                 if (questHeaderText != null)
-                    questHeaderText.text = "MISI SELESAI";
+                    questHeaderText.text = GameLocalization.Get("QUEST COMPLETE");
                 if (questTitleText != null)
-                    questTitleText.text = definition.title;
+                    questTitleText.text = GameLocalization.Get(definition.title);
                 if (questObjectiveText != null)
-                    questObjectiveText.text = definition.description;
+                    questObjectiveText.text = GameLocalization.Get(definition.description);
                 if (questPanel != null)
                     questPanel.gameObject.SetActive(showQuestList && !hiddenByMap);
             }
             else
             {
+                completedQuest = null;
                 completionExpiresAt = 0f;
                 RefreshQuestText();
             }
@@ -358,14 +384,14 @@ namespace Prince
             questPanel.pivot = new Vector2(0f, 1f);
             questPanel.GetComponent<Image>().raycastTarget = false;
             questHeaderText = CreateQuestText(
-                "ActiveQuestHeader", questPanel, "MISI AKTIF", 16,
+                "ActiveQuestHeader", questPanel, "ACTIVE QUEST", 16,
                 new Color(0.78f, 0.66f, 0.45f, 1f),
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
                 new Vector2(14f, -10f), new Vector2(-28f, 22f));
             questHeaderText.fontStyle = FontStyles.Bold;
             questHeaderText.characterSpacing = 1f;
             questTitleText = CreateQuestText(
-                "ActiveQuestTitle", questPanel, "Belum ada misi", 19,
+                "ActiveQuestTitle", questPanel, "No active quest", 19,
                 new Color(0.91f, 0.87f, 0.77f, 1f),
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
                 new Vector2(14f, -35f), new Vector2(-28f, 28f));
@@ -443,7 +469,7 @@ namespace Prince
             rect.anchoredPosition = position;
             rect.sizeDelta = size;
             TextMeshProUGUI text = element.GetComponent<TextMeshProUGUI>();
-            text.text = content;
+            text.text = GameLocalization.Get(content);
             text.fontSize = fontSize;
             text.color = color;
             text.alignment = TextAlignmentOptions.MidlineLeft;

@@ -47,7 +47,7 @@ namespace Prince
             rect.offsetMin = new Vector2(14f, 2f);
             rect.offsetMax = new Vector2(-14f, -2f);
             TextMeshProUGUI text = gameObject.GetComponent<TextMeshProUGUI>();
-            text.text = value;
+            text.text = GameLocalization.Get(value);
             text.fontSize = size;
             text.color = color;
             text.alignment = alignment;

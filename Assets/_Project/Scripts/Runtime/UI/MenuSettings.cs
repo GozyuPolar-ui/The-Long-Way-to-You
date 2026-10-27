@@ -20,6 +20,12 @@ namespace Prince
         public static float CameraSensitivity => PlayerPrefs.GetFloat(SensitivityKey, 1f);
         public static int QualityIndex => PlayerPrefs.GetInt(QualityKey, QualitySettings.GetQualityLevel());
         public static bool Fullscreen => PlayerPrefs.GetInt(FullscreenKey, Screen.fullScreen ? 1 : 0) == 1;
+        public static LoadingLoreLanguage Language => GameLocalization.CurrentLanguage;
+
+        public static void SetLanguage(LoadingLoreLanguage language)
+        {
+            GameLocalization.SetLanguage(language);
+        }
 
         public static void SetVolume(string channel, float value)
         {
@@ -81,6 +87,7 @@ namespace Prince
             Screen.fullScreen = Fullscreen;
             ApplyAudio();
             ApplyCameraSensitivity();
+            SceneLoader.SetLanguage(Language);
         }
 
         public static void ApplyAudio()

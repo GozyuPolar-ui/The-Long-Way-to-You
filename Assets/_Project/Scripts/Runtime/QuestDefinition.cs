@@ -6,7 +6,8 @@ namespace Prince
     public enum QuestObjectiveType
     {
         Collect,
-        TalkTo
+        TalkTo,
+        Defeat
     }
 
     [Serializable]

@@ -22,7 +22,8 @@ namespace Prince
         {
             if (tooltip != null && marker != null)
             {
-                tooltip.text = mapSystem != null ? mapSystem.GetMarkerTooltip(marker) : marker.DisplayName;
+                tooltip.text = GameLocalization.Get(
+                    mapSystem != null ? mapSystem.GetMarkerTooltip(marker) : marker.DisplayName);
                 tooltip.gameObject.SetActive(true);
             }
         }

@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1907c39193a5487ea73fa3dc72bea886, type: 3}
+  m_Name: CombatFeelSettings
+  m_EditorClassIdentifier: Assembly-CSharp::Prince.CombatFeelSettings
+  preset: 1
+  attackBufferSeconds: 0.22
+  attackBufferEnabled: 1
+  jumpCancelEnabled: 1
+  attackPhasesEnabled: 1
+  attackSpeedEnabled: 1
+  audioPitchVariationEnabled: 1
+  hitStopEnabled: 1
+  attackLungeEnabled: 1
+  autoFaceEnabled: 1
+  enemyPoiseEnabled: 1
+  enemyDamageScalingEnabled: 1
+  cameraImpulseEnabled: 1
+  swordTrailEnabled: 1
+  hitFlashEnabled: 1
+  impactParticlesEnabled: 1
+  enemyRunDustEnabled: 1
+  finisherSlowMotionEnabled: 0
+  cameraShakePercent: 0.65
+  screenFlashEnabled: 1
+  accessibilityHitStopEnabled: 1
+  visualEffectsEnabled: 1
+  lightHitStop: 0.05
+  mediumHitStop: 0.07
+  finisherHitStop: 0.1
+  frozenAnimatorSpeed: 0.02
+  finisherSlowMotionScale: 0.25
+  finisherSlowMotionDuration: 0.4
+  audioPitchVariation: 0.07
+  autoFaceDistance: 5.5
+  autoFaceAngle: 115
+  autoFaceTurnSpeed: 630
+  lungeGroundCheckDistance: 1.5
+  mediumPoiseThreshold: 1
+  finisherPoiseThreshold: 2
+  bearPoiseMultiplier: 2
+  lenientEnemyDamageMultiplier: 0.8
+  cameraImpulseLight: 0.18
+  cameraImpulseMedium: 0.28
+  cameraImpulseFinisher: 0.35
+  cameraImpulseDuration: 0.25
+  hitFlashDuration: 0.08
+  trailColor: {r: 0.78, g: 0.94, b: 1, a: 0.75}
+  impactColor: {r: 1, g: 0.72, b: 0.34, a: 1}
+  impactParticleMaterial: {fileID: 2100000, guid: 9d5e46471dc460a4baeb5aa61a7c2f5a, type: 2}
+  attacks:
+  - attackName: Attack 1
+    startupTime: 0.46
+    activeWindow: 0.45
+    recoveryTime: 0.75
+    speedMultiplier: 1.15
+    cancelWindowStart: 0.44
+    hitStopTier: 0
+    lungeDistance: 0.28
+    knockbackStrength: 1.1
+  - attackName: Attack 2
+    startupTime: 0.5
+    activeWindow: 0.48
+    recoveryTime: 0.8
+    speedMultiplier: 1.18
+    cancelWindowStart: 0.42000002
+    hitStopTier: 1
+    lungeDistance: 0.35
+    knockbackStrength: 1.8
+  - attackName: Attack 3
+    startupTime: 0.39
+    activeWindow: 0.37
+    recoveryTime: 0.62
+    speedMultiplier: 1.22
+    cancelWindowStart: 0.39999998
+    hitStopTier: 2
+    lungeDistance: 0.45
+    knockbackStrength: 2.8

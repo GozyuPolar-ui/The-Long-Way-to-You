@@ -10,8 +10,9 @@ namespace Prince
         public string dialogueId = string.Empty;
         public UnityEvent OnInteract = new UnityEvent();
 
-        public string PromptText => $"Tekan E untuk berbicara: {DisplayName}";
-        public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
+        public string PromptText => GameLocalization.Get("Press E to talk: {0}", DisplayName);
+        public string DisplayName => GameLocalization.Get(
+            string.IsNullOrWhiteSpace(displayName) ? name : displayName);
 
         public void Interact()
         {

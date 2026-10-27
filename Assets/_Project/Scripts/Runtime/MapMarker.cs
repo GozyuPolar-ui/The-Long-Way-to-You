@@ -28,11 +28,11 @@ namespace Prince
         private QuestTarget questTarget;
 
         public static IReadOnlyList<MapMarker> Active => ActiveMarkers;
-        public string DisplayName => !string.IsNullOrWhiteSpace(displayName)
+        public string DisplayName => GameLocalization.Get(!string.IsNullOrWhiteSpace(displayName)
             ? displayName
             : questTarget != null && !string.IsNullOrWhiteSpace(questTarget.displayName)
                 ? questTarget.displayName
-                : name;
+                : name);
         public string TargetId => questTarget != null ? questTarget.targetId : string.Empty;
 
         private void Awake()

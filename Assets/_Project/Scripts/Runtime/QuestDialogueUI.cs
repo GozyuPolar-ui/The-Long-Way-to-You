@@ -134,7 +134,7 @@ namespace Prince
         {
             if (Instance == null || Instance.promptText == null)
                 return;
-            Instance.promptText.text = value ?? string.Empty;
+            Instance.promptText.text = GameLocalization.Get(value ?? string.Empty);
             Instance.promptText.transform.parent.gameObject.SetActive(!string.IsNullOrEmpty(value) &&
                 !IsDialogueOpen);
         }
@@ -201,8 +201,8 @@ namespace Prince
                 currentSpeaker = line.Substring(0, separator).Trim();
                 line = line.Substring(separator + 1).Trim();
             }
-            messageText.text = line;
-            speakerText.text = currentSpeaker;
+            messageText.text = GameLocalization.Get(line);
+            speakerText.text = GameLocalization.Get(currentSpeaker);
         }
 
         private void ShowChoices(string firstRawLine)
@@ -392,6 +392,18 @@ namespace Prince
         {
             functions["quest_state"] = questId =>
                 questManager != null ? questManager.GetState(questId).ToString() : QuestState.NotStarted.ToString();
+            functions["bear_alive"] = _ =>
+            {
+                foreach (QuestPickup backpack in FindObjectsByType<QuestPickup>(
+                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                {
+                    QuestTarget target = backpack.GetComponent<QuestTarget>();
+                    if (target != null && target.targetId == "bram_backpack")
+                        return backpack.IsGuardBearAlive ? "true" : "false";
+                }
+
+                return "false";
+            };
             commands["start_quest"] = arguments =>
             {
                 if (arguments.Length == 0)
@@ -712,7 +724,7 @@ namespace Prince
             if (cachedFont == null)
                 cachedFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.font = cachedFont;
-            text.text = content;
+            text.text = GameLocalization.Get(content);
             text.fontSize = fontSize;
             text.color = Color.white;
             text.alignment = alignment;

@@ -37,6 +37,7 @@ namespace Prince
                 loadingScreen = GetComponentInChildren<LoadingScreenController>(true);
             if (loadingData == null)
                 loadingData = Resources.Load<LoadingLoreData>(DataResourcePath);
+            loadingData?.SetLanguage(GameLocalization.CurrentLanguage);
         }
 
         private void OnDestroy()
@@ -128,6 +129,7 @@ namespace Prince
 
             if (loadingData == null)
                 loadingData = Resources.Load<LoadingLoreData>(DataResourcePath);
+            loadingData?.SetLanguage(GameLocalization.CurrentLanguage);
             if (loadingData == null)
             {
                 Debug.LogWarning(

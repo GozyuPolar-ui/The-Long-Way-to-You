@@ -23,6 +23,7 @@ namespace Prince.Editor
         private const string GiverPrefabPath = "Assets/_Project/Prefabs/NPC/NPC_Guard_01.prefab";
         private const string QuestIconPath = "Assets/_Project/UI/Map/Icons/MapIcon_Quest.png";
         private const string QuestId = "hunter_backpack";
+        private const string BearDefeatObjectiveId = "defeat_guarding_bear";
         private const string BackpackTargetId = "bram_backpack";
         private const string BramTargetId = "bram";
         private const string PickupObjectiveId = "find_bram_backpack";
@@ -35,6 +36,9 @@ namespace Prince.Editor
         private const string DialogueSourceText =
             @"title: Bram_Start
 ---
+<<if bear_alive() == ""true"">>
+Bram: Kau harus menghadapi beruang itu lebih dulu. Hati-hati.
+<<endif>>
 <<if quest_state(""hunter_backpack"") == ""NotStarted"">>
 Bram: Hei, kau! Jangan lewat situ sembarangan. Eh... pakaianmu bagus sekali. Kau bukan orang sini, ya?
 Pangeran: Aku sedang dalam perjalanan menuju kerajaan seberang. Ada yang bisa kubantu?
@@ -305,8 +309,15 @@ Bram: Hati-hati dengan babi itu. Hindari dulu kalau bisa, hadapi kalau perlu.
             {
                 new QuestObjectiveDefinition
                 {
+                    id = BearDefeatObjectiveId,
+                    description = "Kalahkan beruang yang menjaga ransel.",
+                    type = QuestObjectiveType.Defeat,
+                    targetId = "guarding_bear"
+                },
+                new QuestObjectiveDefinition
+                {
                     id = PickupObjectiveId,
-                    description = "Bram kehilangan ranselnya saat dikejar babi hutan. Cari di dekat sungai.",
+                    description = "Ambil ransel Bram di dekat sungai.",
                     type = QuestObjectiveType.Collect,
                     targetId = BackpackTargetId
                 },
@@ -440,7 +451,8 @@ Bram: Hati-hati dengan babi itu. Hindari dulu kalau bisa, hadapi kalau perlu.
                 if (pickup == null)
                     pickup = root.AddComponent<QuestPickup>();
                 if (!SetObjectReference(pickup, "questTarget", target) ||
-                    !SetObjectReference(pickup, "requiredQuest", quest))
+                    !SetObjectReference(pickup, "requiredQuest", quest) ||
+                    !SetBoolean(pickup, "requireBearDefeated", true))
                     return false;
 
                 MapMarker marker = root.GetComponent<MapMarker>();
@@ -723,6 +735,21 @@ Bram: Hati-hati dengan babi itu. Hindari dulu kalau bisa, hadapi kalau perlu.
             }
 
             property.objectReferenceValue = value;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return true;
+        }
+
+        private static bool SetBoolean(Component component, string propertyName, bool value)
+        {
+            SerializedObject serialized = new SerializedObject(component);
+            SerializedProperty property = serialized.FindProperty(propertyName);
+            if (property == null)
+            {
+                Debug.LogError($"Serialized field '{propertyName}' was not found on {component.GetType().Name}.", component);
+                return false;
+            }
+
+            property.boolValue = value;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             return true;
         }

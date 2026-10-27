@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using UnityEngine.Video;
 
 namespace Prince.Editor
@@ -21,7 +22,7 @@ namespace Prince.Editor
         private const string BackupFolder = "Assets/_Project/Docs/ClosingBackup~";
         private const string RuntimeObjectName = "BackpackQuest_Runtime";
         private const string QuestId = "hunter_backpack";
-        private const string BackpackObjectiveId = "find_bram_backpack";
+        private const string ReturnObjectiveId = "return_backpack_to_bram";
         private const string BackpackTargetId = "bram_backpack";
         private const string MenuFontPath =
             "Assets/_Project/Fonts/TMP/CormorantGaramond-SemiBold SDF.asset";
@@ -327,8 +328,8 @@ namespace Prince.Editor
                 if (trigger == null)
                     trigger = Undo.AddComponent<QuestCompleteTrigger>(runtimeObject);
                 trigger.Configure(
-                    QuestId, BackpackObjectiveId, BackpackTargetId, "Closing",
-                    data.BagTakenDelay, data.TransitionFadeDuration);
+                    QuestId, ReturnObjectiveId, BackpackTargetId, "Closing",
+                    1.8f, data.TransitionFadeDuration);
                 EditorUtility.SetDirty(trigger);
 
                 PostQuestExploreMode exploreMode =
@@ -338,6 +339,7 @@ namespace Prince.Editor
                 exploreMode.Configure(true, BackpackTargetId);
                 EditorUtility.SetDirty(exploreMode);
 
+                EnsureSceneFader(forestScene);
                 EditorSceneManager.MarkSceneDirty(forestScene);
                 success = EditorSceneManager.SaveScene(forestScene, ForestScenePath);
                 if (!success)
@@ -369,6 +371,49 @@ namespace Prince.Editor
                 Debug.LogError($"Could not create required backup '{backupPath}': {exception.Message}");
                 return false;
             }
+        }
+
+        private static void EnsureSceneFader(Scene scene)
+        {
+            SceneFader fader = FindComponent<SceneFader>(scene);
+            GameObject canvasObject = fader != null
+                ? fader.gameObject
+                : FindGameObject(scene, "SceneFaderCanvas");
+            if (canvasObject == null)
+            {
+                canvasObject = new GameObject("SceneFaderCanvas", typeof(RectTransform));
+                SceneManager.MoveGameObjectToScene(canvasObject, scene);
+                Undo.RegisterCreatedObjectUndo(canvasObject, "Add Scene Fader");
+            }
+
+            Canvas canvas = canvasObject.GetComponent<Canvas>();
+            if (canvas == null)
+                canvas = Undo.AddComponent<Canvas>(canvasObject);
+            CanvasGroup group = canvasObject.GetComponent<CanvasGroup>();
+            if (group == null)
+                group = Undo.AddComponent<CanvasGroup>(canvasObject);
+            Image image = canvasObject.GetComponent<Image>();
+            if (image == null)
+                image = Undo.AddComponent<Image>(canvasObject);
+            if (canvasObject.GetComponent<GraphicRaycaster>() == null)
+                Undo.AddComponent<GraphicRaycaster>(canvasObject);
+            if (fader == null)
+                fader = Undo.AddComponent<SceneFader>(canvasObject);
+
+            canvasObject.SetActive(true);
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 1000;
+            group.alpha = 1f;
+            group.blocksRaycasts = true;
+            image.color = Color.black;
+            image.raycastTarget = true;
+            RectTransform rect = canvasObject.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            EditorUtility.SetDirty(canvasObject);
+            EditorUtility.SetDirty(fader);
         }
 
         private static bool AddClosingSceneToBuildSettings()

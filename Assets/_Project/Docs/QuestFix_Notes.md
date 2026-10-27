@@ -1,0 +1,50 @@
+# Perbaikan Alur Quest Ransel Sang Pemburu
+
+## Temuan awal
+
+- Closing sebelumnya dipicu oleh `QuestCompleteTrigger` yang mendengarkan `QuestManager.OnObjectiveChanged` untuk objective `Collect` `find_bram_backpack`. `QuestPickup.Interact()` mengirim `QuestTarget.targetId` (`bram_backpack`) ke `NotifyTargetCollected`, lalu menonaktifkan objek ransel. Akibatnya Closing dimulai saat pickup, bukan setelah turn-in.
+- Dialog Bram memanggil `complete_quest hunter_backpack` sebelum baris dialog penutup. Event selesai karena itu terjadi saat dialog masih terbuka dan input masih terkunci.
+- `QuestManager` sebelumnya belum menyediakan event khusus quest selesai. Notifikasi target memproses objective pertama yang belum selesai agar urutan quest tidak bisa dilewati; pola ini dipertahankan untuk objective Defeat baru.
+- Scene `UNS_Demo` memiliki `BackpackQuestPlacement` dan `QuestManager`, tetapi inspeksi statis tidak menemukan instance `QuestPickup` maupun `BearAI`. Karena itu tool perbaikan membuat backpack hanya bila belum ada, tidak membuat beruang, dan menerapkan fallback tanpa soft-lock sampai beruang dipasang.
+
+## Perubahan
+
+- Quest sekarang berurutan: `Kalahkan beruang yang menjaga ransel.`, `Ambil ransel Bram di dekat sungai.`, lalu `Kembalilah ke Bram dan serahkan ranselnya.` HUD, compass, dan peta tetap melacak target Collect ransel ketika objective aktif adalah Defeat.
+- `BearAI` melaporkan kematian ke `QuestManager`; target yang sudah kalah dicatat selama sesi agar objective juga terselesaikan bila quest baru dimulai setelah beruang mati.
+- `QuestPickup` memiliki `requireBearDefeated` (default `true`) dan referensi Inspector `bearGuard`. Jika referensi kosong, komponen mencari beruang dalam `BackpackQuestPlacement.guardAreaRadius` (atau satu-satunya beruang di scene). Saat beruang hidup prompt menampilkan satu pesan singkat; bila beruang tidak ditemukan, satu `Debug.LogWarning` dicatat dan ransel tetap dapat diambil. Compass tetap menargetkan ransel.
+- Dialog Bram menambahkan satu baris kondisional saat beruang masih hidup: “Kau harus menghadapi beruang itu lebih dulu. Hati-hati.”
+- `QuestManager.OnQuestCompleted` sekarang dipancarkan setelah quest benar-benar selesai saat turn-in. Trigger Closing mendengarkan event ini, menunggu dialog tertutup dan `DialogueInputLock` terlepas, menyimpan state kembali setelah lock dilepas, menunggu 1,8 detik waktu nyata, lalu memuat Closing melalui `SceneFader`. Penjaga satu-kali menghindari transisi ganda.
+- Menu **Tools > Prince > Fix Backpack Quest Flow** menyelaraskan definisi quest dan prefab, mendaftarkan quest, memasang referensi beruang jika tersedia, menambahkan instance backpack hanya jika belum ada, serta memastikan trigger dan fader tidak digandakan. Menjalankannya saat Play Mode atau dengan scene hutan yang memiliki perubahan belum tersimpan ditolak. Backup data/prefab/scene dibuat satu kali sebelum perubahan tool.
+- Menu **Tools > Prince > Setup Closing Scene** juga memastikan `SceneFader` tersedia di scene hutan. Sebelumnya menu ini memasang trigger Closing tetapi tidak memasang fader, sehingga quest bisa selesai tanpa transisi.
+- Sistem respawn, dialog lain, tampilan peta/menu, dan kombat selain notifikasi kematian beruang tidak diubah; penentuan target peta hanya disesuaikan untuk mempertahankan marker ransel selama objective Defeat. Tidak ada aset Asset Store atau Starter Assets yang diedit.
+
+## Backup sebelum perubahan kode/dokumen
+
+Salinan asli berekstensi `.bak` berada di `Assets/_Project/Docs/QuestFixBackup~/`:
+
+- `QuestDefinition.cs.bak`
+- `QuestManager.cs.bak`
+- `QuestPickup.cs.bak`
+- `BearAI.cs.bak`
+- `DialogueInputLock.cs.bak`
+- `QuestDialogueUI.cs.bak`
+- `QuestTrackingHUD.cs.bak`
+- `MapSystem.cs.bak`
+- `BackpackQuest_Notes.md.bak`
+- `QuestCompleteTrigger.cs.bak`
+- `PrinceDialogueQuestSetup.cs.bak`
+- `PrinceClosingSceneSetup.cs.bak`
+- `TestQuest.yarn.bak`
+- `ClosingScene_Notes.md.bak`
+
+Saat menu perbaikan dijalankan untuk pertama kali, menu tersebut juga membuat `Quest_RanselSangPemburu.asset.bak`, `QuestItem_Backpack.prefab.bak`, dan `UNS_Demo.unity.bak` di folder yang sama sebelum menulis perubahan data itu.
+
+## Verifikasi dan langkah manual
+
+- Pemeriksaan statis dilakukan pada alur event, IDs objective/target, guard pickup, fungsi dialog, pemuatan Closing, konfigurasi menu, dan backup. Brace serta pemanggilan konfigurasi yang terkait diperiksa.
+- Tidak membuka Unity, menjalankan Play Mode, menguji alur quest saat Play, atau memverifikasi pemuatan/fade scene secara runtime. Kompilasi dan import aktual Unity belum diverifikasi.
+- Untuk menerapkan data serialized: buka proyek, tunggu kompilasi, pastikan scene hutan tidak memiliki perubahan belum tersimpan, lalu jalankan **Tools > Prince > Fix Backpack Quest Flow**. Tool akan menambah backpack ke posisi yang tersimpan di `BackpackQuestPlacement` jika belum ada.
+- Jika log menyebut `no SceneFader`, jalankan **Tools > Prince > Setup Closing Scene** sekali lagi setelah kompilasi; tool kini memasang fader di scene hutan secara idempoten.
+- Scene saat ini tidak memuat `BearAI`, jadi tool akan memberi warning dan mengaktifkan fallback agar quest tetap bisa dilanjutkan tanpa soft-lock. Jika ingin menguji alur beruang normal, jalankan **Tools > Prince > Setup Bear Enemy**, lalu jalankan kembali **Fix Backpack Quest Flow** untuk mengisi referensi `bearGuard`.
+- Setelah tool berhasil, periksa `QuestItem_Backpack` (`requireBearDefeated` dan `bearGuard`) serta definisi objective. Verifikasi gameplay secara manual dengan urutan: terima quest dari Bram, kalahkan beruang, ambil ransel, kembali ke Bram, lanjutkan dialog sampai selesai, lalu pastikan Closing baru muncul setelah jeda dan fade.
+- Untuk menguji ulang flag Closing, hentikan Play Mode dan gunakan **Tools > Prince > Reset Closing Quest Progress** sebelum memulai sesi baru.

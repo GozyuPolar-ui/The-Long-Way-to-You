@@ -10,6 +10,7 @@ namespace Prince
         private TMP_FontAsset font;
         private Action onBack;
         private TMP_Dropdown qualityDropdown;
+        private TMP_Dropdown languageDropdown;
         private bool built;
         private int sliderRow;
 
@@ -30,7 +31,7 @@ namespace Prince
             root.anchorMin = root.anchorMax = new Vector2(0.5f, 0.5f);
             root.pivot = new Vector2(0.5f, 0.5f);
             root.anchoredPosition = Vector2.zero;
-            root.sizeDelta = new Vector2(670f, 760f);
+            root.sizeDelta = new Vector2(670f, 870f);
             Image panelImage = gameObject.GetComponent<Image>();
             if (panelImage == null)
                 panelImage = gameObject.AddComponent<Image>();
@@ -49,6 +50,8 @@ namespace Prince
             AddVolumeSlider(root, MenuStrings.MasterVolume, "Master");
             AddVolumeSlider(root, MenuStrings.Music, "Music");
             AddVolumeSlider(root, MenuStrings.Effects, "Effects");
+            AddLanguageDropdown(root);
+            sliderRow++;
             AddQualityDropdown(root);
             AddFullscreenToggle(root);
             AddSensitivitySlider(root);
@@ -58,6 +61,32 @@ namespace Prince
                 new Vector2(0.5f, 0f), new Vector2(0f, 36f), new Vector2(310f, 56f));
             back.onClick.AddListener(() => onBack?.Invoke());
             gameObject.SetActive(false);
+        }
+
+        private void OnEnable()
+        {
+            GameLocalization.LanguageChanged += OnLanguageChanged;
+        }
+
+        private void OnDisable()
+        {
+            GameLocalization.LanguageChanged -= OnLanguageChanged;
+        }
+
+        private void OnLanguageChanged(LoadingLoreLanguage language)
+        {
+            if (qualityDropdown == null)
+                return;
+
+            qualityDropdown.options.Clear();
+            foreach (string quality in QualitySettings.names)
+                qualityDropdown.options.Add(new TMP_Dropdown.OptionData(GameLocalization.Get(quality)));
+            if (qualityDropdown.options.Count == 0)
+                qualityDropdown.options.Add(
+                    new TMP_Dropdown.OptionData(GameLocalization.Get(MenuStrings.DefaultQuality)));
+            qualityDropdown.SetValueWithoutNotify(
+                Mathf.Clamp(MenuSettings.QualityIndex, 0, qualityDropdown.options.Count - 1));
+            qualityDropdown.RefreshShownValue();
         }
 
         private void AddVolumeSlider(Transform root, string label, string channel)
@@ -94,10 +123,10 @@ namespace Prince
             TextMeshProUGUI label = MenuUIFactory.Text("QualityLabel", root, MenuStrings.GraphicsQuality, 19f,
                 MenuUIFactory.Cream);
             Place(label.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(0f, 1f), new Vector2(42f, -456f), new Vector2(250f, 36f));
+                new Vector2(0f, 1f), new Vector2(42f, -552f), new Vector2(250f, 36f));
 
             RectTransform rect = MenuUIFactory.Rect("QualityDropdown", root, new Vector2(1f, 1f),
-                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-42f, -452f), new Vector2(265f, 42f));
+                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-42f, -548f), new Vector2(265f, 42f));
             Image image = rect.gameObject.AddComponent<Image>();
             image.color = new Color(0.11f, 0.105f, 0.09f, 1f);
             qualityDropdown = rect.gameObject.AddComponent<TMP_Dropdown>();
@@ -106,9 +135,10 @@ namespace Prince
             qualityDropdown.template = CreateDropdownTemplate(rect);
             qualityDropdown.options.Clear();
             foreach (string quality in QualitySettings.names)
-                qualityDropdown.options.Add(new TMP_Dropdown.OptionData(quality));
+                qualityDropdown.options.Add(new TMP_Dropdown.OptionData(GameLocalization.Get(quality)));
             if (qualityDropdown.options.Count == 0)
-                qualityDropdown.options.Add(new TMP_Dropdown.OptionData(MenuStrings.DefaultQuality));
+                qualityDropdown.options.Add(
+                    new TMP_Dropdown.OptionData(GameLocalization.Get(MenuStrings.DefaultQuality)));
             qualityDropdown.value = Mathf.Clamp(MenuSettings.QualityIndex, 0, qualityDropdown.options.Count - 1);
             qualityDropdown.onValueChanged.AddListener(MenuSettings.SetQuality);
             qualityDropdown.RefreshShownValue();
@@ -119,10 +149,10 @@ namespace Prince
             TextMeshProUGUI label = MenuUIFactory.Text("FullscreenLabel", root, MenuStrings.Fullscreen, 19f,
                 MenuUIFactory.Cream);
             Place(label.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(0f, 1f), new Vector2(42f, -520f), new Vector2(250f, 36f));
+                new Vector2(0f, 1f), new Vector2(42f, -624f), new Vector2(250f, 36f));
 
             RectTransform rect = MenuUIFactory.Rect("FullscreenToggle", root, new Vector2(1f, 1f),
-                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-42f, -520f), new Vector2(46f, 36f));
+                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-42f, -624f), new Vector2(46f, 36f));
             Toggle toggle = rect.gameObject.AddComponent<Toggle>();
             Image background = rect.gameObject.AddComponent<Image>();
             background.color = new Color(0.12f, 0.11f, 0.09f, 1f);
@@ -134,6 +164,34 @@ namespace Prince
             toggle.graphic = check;
             toggle.isOn = MenuSettings.Fullscreen;
             toggle.onValueChanged.AddListener(MenuSettings.SetFullscreen);
+        }
+
+        private void AddLanguageDropdown(Transform root)
+        {
+            TextMeshProUGUI label = MenuUIFactory.Text(
+                "LanguageLabel", root, GameLocalization.Get("Language"), 19f,
+                MenuUIFactory.Cream);
+            Place(label.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(0f, 1f), new Vector2(42f, -380f), new Vector2(250f, 36f));
+
+            RectTransform rect = MenuUIFactory.Rect("LanguageDropdown", root, new Vector2(1f, 1f),
+                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-42f, -376f), new Vector2(265f, 42f));
+            Image image = rect.gameObject.AddComponent<Image>();
+            image.color = new Color(0.11f, 0.105f, 0.09f, 1f);
+            languageDropdown = rect.gameObject.AddComponent<TMP_Dropdown>();
+            languageDropdown.targetGraphic = image;
+            languageDropdown.captionText = CreateDropdownText(rect, "LanguageValue", 17f);
+            languageDropdown.template = CreateDropdownTemplate(rect);
+            languageDropdown.options.Clear();
+            languageDropdown.options.Add(new TMP_Dropdown.OptionData("English"));
+            languageDropdown.options.Add(new TMP_Dropdown.OptionData("Bahasa Indonesia"));
+            languageDropdown.SetValueWithoutNotify(
+                MenuSettings.Language == LoadingLoreLanguage.English ? 0 : 1);
+            languageDropdown.onValueChanged.AddListener(index =>
+                MenuSettings.SetLanguage(index == 0
+                    ? LoadingLoreLanguage.English
+                    : LoadingLoreLanguage.Indonesian));
+            languageDropdown.RefreshShownValue();
         }
 
         private RectTransform CreateDropdownTemplate(RectTransform owner)

@@ -93,6 +93,7 @@ namespace Prince
                 enabled = false;
                 return;
             }
+            data.SetLanguage(GameLocalization.CurrentLanguage);
 
             menuCanvas = GetComponent<Canvas>();
             if (menuCanvas == null)

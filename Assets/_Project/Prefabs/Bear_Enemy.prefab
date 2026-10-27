@@ -509,6 +509,18 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7962199819078159310, guid: f5b41ba4c79702547a89de7544b80656, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7380473510599212990}
+    - targetCorrespondingSourceObject: {fileID: 7962199819078159310, guid: f5b41ba4c79702547a89de7544b80656, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4216493961765977642}
+    - targetCorrespondingSourceObject: {fileID: 7962199819078159310, guid: f5b41ba4c79702547a89de7544b80656, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1750686873986192811}
+    - targetCorrespondingSourceObject: {fileID: 7962199819078159310, guid: f5b41ba4c79702547a89de7544b80656, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1275382337758756808}
+    - targetCorrespondingSourceObject: {fileID: 7962199819078159310, guid: f5b41ba4c79702547a89de7544b80656, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6910751856961136104}
   m_SourcePrefab: {fileID: 100100000, guid: f5b41ba4c79702547a89de7544b80656, type: 3}
 --- !u!4 &1277102596681592418 stripped
 Transform:
@@ -727,3 +739,75 @@ MonoBehaviour:
   attackClip: {fileID: 0}
   hurtClip: {fileID: 0}
   deathClip: {fileID: 0}
+  questTargetId: guarding_bear
+--- !u!114 &4216493961765977642
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941894382602892504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c38a0dcb94864b29b84aafc253a79aac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Prince.HitStop
+  targetAnimator: {fileID: 5141143606917248024}
+  settings: {fileID: 11400000, guid: 890ee71c80ba94d4d9ae847ed16170a8, type: 2}
+--- !u!114 &1750686873986192811
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941894382602892504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f49bb12fe1b44b1d92cee965920580b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Prince.EnemyPoise
+  settings: {fileID: 11400000, guid: 890ee71c80ba94d4d9ae847ed16170a8, type: 2}
+  animator: {fileID: 5141143606917248024}
+  characterController: {fileID: 0}
+  agent: {fileID: 6388087870106802017}
+--- !u!114 &1275382337758756808
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941894382602892504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e14c889591e434eb7168797d5c06383, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Prince.HitFlash
+  settings: {fileID: 11400000, guid: 890ee71c80ba94d4d9ae847ed16170a8, type: 2}
+--- !u!114 &6910751856961136104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941894382602892504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3049035223cd40d89dc51d4ff10da9ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Prince.CombatFeel
+  settings: {fileID: 11400000, guid: 890ee71c80ba94d4d9ae847ed16170a8, type: 2}
+  playerCombat: {fileID: 0}
+  animator: {fileID: 5141143606917248024}
+  characterController: {fileID: 0}
+  enemyMovementDust: 1
+  attackLunge: {fileID: 0}
+  hitStop: {fileID: 4216493961765977642}
+  cameraImpulse: {fileID: 0}
+  swordTrail: {fileID: 0}
+  runDustSpeed: 1.8
+  runDustInterval: 0.42
+--- !u!95 &5141143606917248024 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 3734775969355451150, guid: f5b41ba4c79702547a89de7544b80656, type: 3}
+  m_PrefabInstance: {fileID: 8398531795817758486}
+  m_PrefabAsset: {fileID: 0}

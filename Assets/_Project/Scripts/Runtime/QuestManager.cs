@@ -15,9 +15,12 @@ namespace Prince
             new Dictionary<string, QuestProgress>(StringComparer.Ordinal);
         private readonly Dictionary<string, QuestTarget> targetsById =
             new Dictionary<string, QuestTarget>(StringComparer.Ordinal);
+        private readonly HashSet<string> defeatedTargetIds =
+            new HashSet<string>(StringComparer.Ordinal);
 
         public static QuestManager Instance { get; private set; }
         public event Action<QuestDefinition, QuestProgress> OnQuestChanged;
+        public event Action<QuestDefinition, QuestProgress> OnQuestCompleted;
         public event Action<QuestDefinition, QuestObjectiveDefinition, bool> OnObjectiveChanged;
 
         public IReadOnlyList<QuestDefinition> Definitions => definitions;
@@ -85,6 +88,18 @@ namespace Prince
 
             progress.state = QuestState.Active;
             OnQuestChanged?.Invoke(definition, progress);
+
+            if (definition.objectives != null)
+            {
+                foreach (QuestObjectiveDefinition objective in definition.objectives)
+                {
+                    if (objective != null && objective.type == QuestObjectiveType.Defeat &&
+                        !string.IsNullOrWhiteSpace(objective.targetId) &&
+                        defeatedTargetIds.Contains(objective.targetId))
+                        SetObjectiveDone(definition.id, objective.id);
+                }
+            }
+
             return true;
         }
 
@@ -136,6 +151,7 @@ namespace Prince
 
             progress.state = QuestState.Completed;
             OnQuestChanged?.Invoke(definition, progress);
+            OnQuestCompleted?.Invoke(definition, progress);
             return true;
         }
 
@@ -174,6 +190,22 @@ namespace Prince
             }
 
             return active;
+        }
+
+        public static string GetTrackedTargetId(QuestObjectiveProgress activeObjective)
+        {
+            if (activeObjective == null || activeObjective.objective == null)
+                return string.Empty;
+
+            if (activeObjective.objective.type == QuestObjectiveType.Defeat &&
+                activeObjective.quest != null && activeObjective.quest.objectives != null)
+            {
+                foreach (QuestObjectiveDefinition objective in activeObjective.quest.objectives)
+                    if (objective != null && objective.type == QuestObjectiveType.Collect)
+                        return objective.targetId;
+            }
+
+            return activeObjective.objective.targetId;
         }
 
         public void RegisterTarget(QuestTarget target)
@@ -216,9 +248,18 @@ namespace Prince
             SetObjectivesDoneForTarget(targetId, QuestObjectiveType.Collect);
         }
 
+        public void NotifyTargetDefeated(string targetId)
+        {
+            if (string.IsNullOrWhiteSpace(targetId))
+                return;
+
+            defeatedTargetIds.Add(targetId);
+            SetObjectivesDoneForTarget(targetId, QuestObjectiveType.Defeat);
+        }
+
         private void SetObjectivesDoneForTarget(string targetId, QuestObjectiveType type)
         {
-            if (string.IsNullOrEmpty(targetId))
+            if (string.IsNullOrWhiteSpace(targetId))
                 return;
 
             foreach (QuestDefinition definition in definitions)
@@ -231,13 +272,13 @@ namespace Prince
                 for (int i = 0; i < definition.objectives.Length; i++)
                 {
                     QuestObjectiveDefinition objective = definition.objectives[i];
-                    if (progress.objectiveCompleted[i])
+                    if (progress.objectiveCompleted[i] || objective == null)
                         continue;
-                    if (objective == null)
-                        continue;
-                    if (objective != null && objective.type == type &&
+
+                    if (objective.type == type &&
                         string.Equals(objective.targetId, targetId, StringComparison.Ordinal))
                         SetObjectiveDone(definition.id, objective.id);
+
                     break;
                 }
             }

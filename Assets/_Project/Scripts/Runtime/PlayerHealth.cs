@@ -38,6 +38,10 @@ namespace Prince
             if (IsDefeated)
                 return;
 
+            CombatFeel combatFeel = GetComponent<CombatFeel>();
+            if (combatFeel != null)
+                amount = combatFeel.ScaleIncomingDamage(amount, source);
+
             currentHealth = Mathf.Max(0f, currentHealth - amount);
             if (OnHit != null)
                 OnHit.Invoke(amount);

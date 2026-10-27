@@ -319,8 +319,9 @@ namespace Prince
         private void ShowConfirmation(string message, string confirmLabel)
         {
             TextMeshProUGUI text = confirmationRoot.Find("ConfirmationMessage").GetComponent<TextMeshProUGUI>();
-            text.text = message;
-            confirmationRoot.Find("ConfirmAction/Label").GetComponent<TextMeshProUGUI>().text = confirmLabel;
+            text.text = GameLocalization.Get(message);
+            confirmationRoot.Find("ConfirmAction/Label").GetComponent<TextMeshProUGUI>().text =
+                GameLocalization.Get(confirmLabel);
             confirmationRoot.gameObject.SetActive(true);
             SelectFirstSelectable(confirmationRoot);
         }

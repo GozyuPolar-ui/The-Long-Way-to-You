@@ -48,6 +48,7 @@ namespace Prince
         [SerializeField] private AudioClip attackClip;
         [SerializeField] private AudioClip hurtClip;
         [SerializeField] private AudioClip deathClip;
+        [SerializeField] private string questTargetId = "guarding_bear";
 
         private readonly Collider[] _attackHits = new Collider[16];
         private readonly RaycastHit[] _obstacleHits = new RaycastHit[12];
@@ -606,6 +607,8 @@ namespace Prince
         {
             _isDead = true;
             _state = BearState.Dead;
+            if (QuestManager.Instance != null)
+                QuestManager.Instance.NotifyTargetDefeated(questTargetId);
             _healthBar?.Show();
             StopAgent();
             if (_agent != null)

@@ -16,6 +16,8 @@ namespace Prince
         private CursorLockMode previousCursorLockMode;
         private bool previousCursorVisible;
 
+        public bool IsLocked => locked;
+
         private void Awake()
         {
             movement = GetComponent<ThirdPersonController>() ?? GetComponentInChildren<ThirdPersonController>();

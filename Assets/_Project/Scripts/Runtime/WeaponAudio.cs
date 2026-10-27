@@ -124,7 +124,15 @@ namespace Prince
 
             EnsureAudioSource();
             lastClip = clip;
-            audioSource.pitch = Random.Range(pitchRange.x, pitchRange.y) * pitchMultiplier;
+            Vector2 effectivePitchRange = pitchRange;
+            CombatFeel combatFeel = GetComponentInParent<CombatFeel>();
+            CombatFeelSettings settings = combatFeel != null ? combatFeel.Settings : null;
+            if (settings != null && settings.audioPitchVariationEnabled)
+            {
+                float variation = Mathf.Clamp(settings.audioPitchVariation, 0f, 0.07f);
+                effectivePitchRange = new Vector2(1f - variation, 1f + variation);
+            }
+            audioSource.pitch = Random.Range(effectivePitchRange.x, effectivePitchRange.y) * pitchMultiplier;
             float variedVolume = volume * Random.Range(1f - volumeVariation, 1f + volumeVariation);
             audioSource.PlayOneShot(clip, Mathf.Clamp01(variedVolume));
         }

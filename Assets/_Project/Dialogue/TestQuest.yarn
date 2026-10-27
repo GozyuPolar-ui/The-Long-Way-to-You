@@ -1,5 +1,8 @@
 title: Bram_Start
 ---
+<<if bear_alive() == "true">>
+Bram: Kau harus menghadapi beruang itu lebih dulu. Hati-hati.
+<<endif>>
 <<if quest_state("hunter_backpack") == "NotStarted">>
 Bram: Hei, kau! Jangan lewat situ sembarangan. Eh... pakaianmu bagus sekali. Kau bukan orang sini, ya?
 Pangeran: Aku sedang dalam perjalanan menuju kerajaan seberang. Ada yang bisa kubantu?

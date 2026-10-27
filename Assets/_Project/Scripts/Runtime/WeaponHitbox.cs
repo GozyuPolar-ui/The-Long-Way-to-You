@@ -18,6 +18,7 @@ namespace Prince
         private bool _playedHardHitThisSwing;
         private bool _warnedMissingCollider;
         private float _scheduledEndTime = -1f;
+        private CombatFeel _combatFeel;
 
         private void Awake()
         {
@@ -25,6 +26,7 @@ namespace Prince
                 hitboxCollider = GetComponent<Collider>();
             if (ownerRoot == null)
                 ownerRoot = transform.root;
+            _combatFeel = ownerRoot.GetComponentInChildren<CombatFeel>(true);
 
             SetHitboxActive(false);
         }
@@ -68,13 +70,17 @@ namespace Prince
 
         public void OnAttackHitEnd()
         {
-            if (_isActive)
+            if (_combatFeel != null && _combatFeel.Settings != null &&
+                _combatFeel.Settings.attackPhasesEnabled)
+                SetHitboxActive(false);
+            else if (_isActive)
                 _scheduledEndTime = Time.time + 0.18f;
         }
 
         public void SetHitboxActive(bool active)
         {
             _scheduledEndTime = -1f;
+            bool wasActive = _isActive;
             bool startingNewSwing = active && !_isActive;
             _isActive = active;
             if (hitboxCollider == null)
@@ -91,7 +97,11 @@ namespace Prince
             {
                 _damagedTargets.Clear();
                 _playedHardHitThisSwing = false;
+                if (_combatFeel != null)
+                    _combatFeel.NotifyAttackWindowStarted();
             }
+            else if (!active && wasActive && _combatFeel != null)
+                _combatFeel.NotifyAttackWindowEnded();
             hitboxCollider.enabled = active;
         }
 
@@ -113,10 +123,14 @@ namespace Prince
                 if (!_damagedTargets.Add(target))
                     return;
 
+                Vector3 hitPoint = ColliderUtility.ClosestPoint(other, transform.position);
+                GameObject source = ownerRoot != null ? ownerRoot.gameObject : gameObject;
                 target.TakeDamage(
                     damage,
-                    ColliderUtility.ClosestPoint(other, transform.position),
-                    ownerRoot != null ? ownerRoot.gameObject : gameObject);
+                    hitPoint,
+                    source);
+                if (_combatFeel != null)
+                    _combatFeel.RegisterHit(target, hitPoint, source);
                 if (weaponAudio != null)
                 {
                     if (target is BearAI)

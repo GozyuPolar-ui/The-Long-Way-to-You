@@ -144,6 +144,7 @@ namespace Prince
         private void OnEnable()
         {
             CreateInputActions();
+            GameLocalization.LanguageChanged += OnLanguageChanged;
             if (questManager == null)
                 questManager = QuestManager.Instance;
             if (questManager != null)
@@ -166,6 +167,7 @@ namespace Prince
 
         private void OnDisable()
         {
+            GameLocalization.LanguageChanged -= OnLanguageChanged;
             CloseMap(false);
             if (fullPanel != null)
                 fullPanel.gameObject.SetActive(false);
@@ -175,6 +177,12 @@ namespace Prince
                 questManager.OnQuestChanged -= OnQuestChanged;
                 questManager.OnObjectiveChanged -= OnObjectiveChanged;
             }
+        }
+
+        private void OnLanguageChanged(LoadingLoreLanguage language)
+        {
+            RefreshLabels();
+            RefreshQuestList();
         }
 
         private void OnDestroy()
@@ -670,7 +678,7 @@ namespace Prince
             fullImageRect.gameObject.AddComponent<RectMask2D>();
             fullMarkerRoot = CreateRect("Full Map Markers", fullImageRect, Vector2.zero, Vector2.one, Vector2.zero);
             coordinateLabel = CreateText("Map Controls", fullPanel,
-                "M / Esc / B: Tutup  |  Scroll / LB-RB: Zoom  |  Seret / Stick: Geser  |  Klik kanan: Tandai",
+                "M / Esc / B: Close  |  Scroll / LB-RB: Zoom  |  Drag / Stick: Pan  |  Right-click: Mark",
                 16, new Color(0.66f, 0.63f, 0.56f, 1f),
                 new Vector2(0.38f, 0.08f), new Vector2(0.38f, 0.08f),
                 Vector2.zero, new Vector2(790f, 30f));
@@ -692,7 +700,7 @@ namespace Prince
             panelLayout.childForceExpandHeight = false;
 
             TextMeshProUGUI panelTitle = CreateLayoutText("Field Notes Title", content,
-                "CATATAN LAPANGAN", 17, new Color(0.73f, 0.61f, 0.4f, 1f), 24f);
+                "FIELD NOTES", 17, new Color(0.73f, 0.61f, 0.4f, 1f), 24f);
             panelTitle.fontStyle = FontStyles.Bold;
             panelTitle.characterSpacing = 1.3f;
             CreateDivider(content);
@@ -708,7 +716,7 @@ namespace Prince
             CreateDivider(content);
 
             TextMeshProUGUI questHeading = CreateLayoutText("Active Quests Title", content,
-                "MISI AKTIF", 18, new Color(0.83f, 0.72f, 0.52f, 1f), 28f);
+                "ACTIVE QUESTS", 18, new Color(0.83f, 0.72f, 0.52f, 1f), 28f);
             questHeading.fontStyle = FontStyles.Bold;
             mapQuestText = CreateLayoutText("Active Quest Notes", content, string.Empty,
                 16, new Color(0.82f, 0.78f, 0.69f, 1f), 170f);
@@ -717,7 +725,7 @@ namespace Prince
             CreateDivider(content);
 
             TextMeshProUGUI legendHeading = CreateLayoutText("Legend Title", content,
-                "LEGENDA", 18, new Color(0.83f, 0.72f, 0.52f, 1f), 28f);
+                "LEGEND", 18, new Color(0.83f, 0.72f, 0.52f, 1f), 28f);
             legendHeading.fontStyle = FontStyles.Bold;
             legendRows = CreateRect("Legend Rows", content,
                 new Vector2(0f, 1f), new Vector2(0f, 1f), Vector2.zero);
@@ -731,17 +739,17 @@ namespace Prince
             rowsLayout.childControlHeight = true;
             rowsLayout.childForceExpandWidth = true;
             rowsLayout.childForceExpandHeight = false;
-            CreateLegendRow(MapMarkerType.Waypoint, "Titik Jalan", legendRows);
-            CreateLegendRow(MapMarkerType.Enemy, "Musuh", legendRows);
-            CreateLegendRow(MapMarkerType.Campfire, "Kemah", legendRows);
-            CreateLegendRow(MapMarkerType.PlayerPing, "Pemain", legendRows);
+            CreateLegendRow(MapMarkerType.Waypoint, "Waypoint", legendRows);
+            CreateLegendRow(MapMarkerType.Enemy, "Enemy", legendRows);
+            CreateLegendRow(MapMarkerType.Campfire, "Campfire", legendRows);
+            CreateLegendRow(MapMarkerType.PlayerPing, "Player", legendRows);
             CreateLegendRow(MapMarkerType.NPC, "NPC", legendRows);
-            CreateLegendRow(MapMarkerType.Quest, "Misi", legendRows);
+            CreateLegendRow(MapMarkerType.Quest, "Quest", legendRows);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            recenterButton = CreateButton("Recenter Map", "KEMBALI KE PANGERAN", content, 40f);
+            recenterButton = CreateButton("Recenter Map", "RETURN TO THE PRINCE", content, 40f);
             recenterButton.onClick.AddListener(RecenterFullMap);
-            revealAllButton = CreateButton("Reveal All", "UNGKAP SEMUA  [DEBUG]", content, 36f);
+            revealAllButton = CreateButton("Reveal All", "REVEAL ALL  [DEBUG]", content, 36f);
             revealAllButton.onClick.AddListener(RevealAll);
 #endif
             fullPanel.localScale = Vector3.one;
@@ -1082,7 +1090,8 @@ namespace Prince
 
             IReadOnlyList<QuestObjectiveProgress> objectives = questManager.GetActiveObjectives();
             for (int i = 0; i < objectives.Count; i++)
-                if (questManager.TryGetTarget(objectives[i].objective.targetId, out QuestTarget target))
+                if (questManager.TryGetTarget(
+                        QuestManager.GetTrackedTargetId(objectives[i]), out QuestTarget target))
                 {
                     activeQuestTarget = target;
                     break;
@@ -1109,9 +1118,10 @@ namespace Prince
                 for (int i = 0; i < objectives.Count; i++)
                 {
                     QuestObjectiveProgress active = objectives[i];
-                    if (active.objective.targetId != marker.TargetId)
+                    if (QuestManager.GetTrackedTargetId(active) != marker.TargetId)
                         continue;
-                    lines.Add(active.quest.title + "\n" + active.objective.description);
+                    lines.Add(GameLocalization.Get(active.quest.title) + "\n" +
+                              GameLocalization.Get(active.objective.description));
                     break;
                 }
             }
@@ -1142,19 +1152,24 @@ namespace Prince
             if (string.IsNullOrWhiteSpace(name))
                 name = gameObject.scene.name;
             if (string.IsNullOrWhiteSpace(name))
-                name = "Wilayah";
+                name = "Area";
+            string localizedName = string.Equals(
+                    name, "The Long Way to You", StringComparison.Ordinal) &&
+                GameLocalization.CurrentLanguage == LoadingLoreLanguage.Indonesian
+                ? "Jalan Panjang Menuju Dirimu"
+                : GameLocalization.Get(name);
             string description = area != null && area.definition != null &&
                 !string.IsNullOrWhiteSpace(area.definition.areaDescription)
                 ? area.definition.areaDescription
-                : "Wilayah ini menanti untuk dijelajahi.";
+                : "This region is waiting to be explored.";
             if (areaLabel != null)
-                areaLabel.text = name.ToUpperInvariant();
+                areaLabel.text = localizedName.ToUpperInvariant();
             if (fullTitle != null)
-                fullTitle.text = name.ToUpperInvariant();
+                fullTitle.text = localizedName.ToUpperInvariant();
             if (fieldAreaNameLabel != null)
-                fieldAreaNameLabel.text = name;
+                fieldAreaNameLabel.text = localizedName;
             if (areaDescriptionLabel != null)
-                areaDescriptionLabel.text = description;
+                areaDescriptionLabel.text = GameLocalization.Get(description);
         }
 
         private void RefreshQuestList()
@@ -1169,7 +1184,7 @@ namespace Prince
                 : Array.Empty<QuestObjectiveProgress>();
             if (objectives.Count == 0)
             {
-                mapQuestText.text = "Belum ada misi";
+                mapQuestText.text = GameLocalization.Get("No active quest");
                 return;
             }
 
@@ -1177,8 +1192,10 @@ namespace Prince
             for (int i = 0; i < objectives.Count; i++)
             {
                 QuestObjectiveProgress active = objectives[i];
-                string title = active.quest != null ? active.quest.title : "Misi";
-                string objective = active.objective != null ? active.objective.description : string.Empty;
+                string title = GameLocalization.Get(active.quest != null ? active.quest.title : "Quest");
+                string objective = active.objective != null
+                    ? GameLocalization.Get(active.objective.description)
+                    : string.Empty;
                 entries.Add($"<b><color=#E5C77D>{title}</color></b>\n<color=#CFC7B7>- {objective}</color>");
             }
             mapQuestText.text = string.Join("\n\n", entries);
@@ -1670,7 +1687,7 @@ namespace Prince
             rect.sizeDelta = size;
             rect.anchoredPosition = position;
             TextMeshProUGUI label = element.GetComponent<TextMeshProUGUI>();
-            label.text = text;
+            label.text = GameLocalization.Get(text);
             label.fontSize = fontSize;
             label.color = color;
             label.alignment = TextAlignmentOptions.Center;
