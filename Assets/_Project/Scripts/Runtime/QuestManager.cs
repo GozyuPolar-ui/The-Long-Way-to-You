@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Prince
 {
@@ -15,6 +16,8 @@ namespace Prince
             new Dictionary<string, QuestProgress>(StringComparer.Ordinal);
         private readonly Dictionary<string, QuestTarget> targetsById =
             new Dictionary<string, QuestTarget>(StringComparer.Ordinal);
+        private readonly HashSet<string> targetIdsWithoutMatch =
+            new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> defeatedTargetIds =
             new HashSet<string>(StringComparer.Ordinal);
 
@@ -24,6 +27,11 @@ namespace Prince
         public event Action<QuestDefinition, QuestObjectiveDefinition, bool> OnObjectiveChanged;
 
         public IReadOnlyList<QuestDefinition> Definitions => definitions;
+
+        private void OnEnable()
+        {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
 
         private void Awake()
         {
@@ -50,10 +58,20 @@ namespace Prince
             }
         }
 
+        private void OnDisable()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
         private void OnDestroy()
         {
             if (Instance == this)
                 Instance = null;
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            targetIdsWithoutMatch.Clear();
         }
 
         private void BuildDefinitionIndex()
@@ -213,6 +231,7 @@ namespace Prince
             if (target == null || string.IsNullOrWhiteSpace(target.targetId))
                 return;
 
+            targetIdsWithoutMatch.Remove(target.targetId);
             if (targetsById.TryGetValue(target.targetId, out QuestTarget existing) &&
                 existing != null && existing != target)
                 Debug.LogWarning($"Multiple quest targets use ID '{target.targetId}'. The latest target is registered.", target);
@@ -232,8 +251,31 @@ namespace Prince
             if (!string.IsNullOrEmpty(targetId) &&
                 targetsById.TryGetValue(targetId, out target) && target != null)
                 return true;
+
             if (!string.IsNullOrEmpty(targetId))
+            {
                 targetsById.Remove(targetId);
+                if (targetIdsWithoutMatch.Contains(targetId))
+                {
+                    target = null;
+                    return false;
+                }
+
+                QuestTarget[] sceneTargets = FindObjectsByType<QuestTarget>(FindObjectsSortMode.None);
+                foreach (QuestTarget sceneTarget in sceneTargets)
+                {
+                    if (sceneTarget == null ||
+                        !string.Equals(sceneTarget.targetId, targetId, StringComparison.Ordinal))
+                        continue;
+
+                    RegisterTarget(sceneTarget);
+                    target = sceneTarget;
+                    return true;
+                }
+
+                targetIdsWithoutMatch.Add(targetId);
+            }
+
             target = null;
             return false;
         }

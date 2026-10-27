@@ -39,9 +39,20 @@ namespace Prince.Editor
             if (loadedForest.IsValid() && loadedForest.isLoaded &&
                 loadedForest.isDirty)
             {
-                Debug.LogError(
-                    $"Save or discard unsaved changes in '{ForestScenePath}' before running Fix Backpack Quest Flow.");
-                return;
+                bool saveAndContinue = EditorUtility.DisplayDialog(
+                    "Unsaved Forest Scene",
+                    "The forest scene has unsaved changes. Save them before applying the backpack quest setup?",
+                    "Save and Continue",
+                    "Cancel");
+                if (!saveAndContinue)
+                    return;
+
+                if (!EditorSceneManager.SaveScene(loadedForest, ForestScenePath))
+                {
+                    Debug.LogError(
+                        $"Could not save unsaved changes in '{ForestScenePath}'. Backpack quest setup was not applied.");
+                    return;
+                }
             }
 
             if (!CreateBackups())

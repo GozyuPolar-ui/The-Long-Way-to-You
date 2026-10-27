@@ -6,6 +6,8 @@ namespace Prince
     [DisallowMultipleComponent]
     public sealed class PostQuestExploreMode : MonoBehaviour
     {
+        private const string BackpackQuestId = "hunter_backpack";
+
         [SerializeField] private bool calmBearsAfterQuest = true;
         [SerializeField] private string bagTargetId = "bram_backpack";
 
@@ -19,6 +21,16 @@ namespace Prince
         {
             if (!Prince.Closing.QuestProgress.IsCompleted)
                 return;
+
+            QuestManager questManager = QuestManager.Instance;
+            if (questManager == null ||
+                questManager.GetState(BackpackQuestId) != QuestState.Completed)
+            {
+                Debug.LogWarning(
+                    "Ignored a saved Closing completion flag because the backpack quest is not completed in this session. The backpack and bears remain available.",
+                    this);
+                return;
+            }
 
             HideCollectedBag();
             if (calmBearsAfterQuest)
